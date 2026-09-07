@@ -49,6 +49,15 @@ jobs:
           node --version
           npx playwright --version
           echo "TARGET_ENV: $TARGET_ENV"
+          node -e "console.log('BASIC_AUTH_USERNAME length:', (process.env.BASIC_AUTH_USERNAME||'').length)"
+          node -e "console.log('BASIC_AUTH_PASSWORD length:', (process.env.BASIC_AUTH_PASSWORD||'').length)"
+
+      - name: Check staging connectivity
+        run: |
+          URL=${HOBBS_BASE_URL:-https://stage.hobbs.com}
+          echo "URL: $URL"
+          curl -s -o /dev/null -w "No auth: %{http_code}\n" "$URL/"
+          curl -s -o /dev/null -w "With auth: %{http_code}\n" -u "$BASIC_AUTH_USERNAME:$BASIC_AUTH_PASSWORD" "$URL/"
 
       - name: Run sanity suite
         run: npx playwright test --project=sanity-chrome --project=sanity-firefox --project=sanity-safari
