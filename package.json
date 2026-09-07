@@ -13,7 +13,6 @@
     "test:regression:staging": "playwright test --project=regression-staging",
     "test:regression:prod": "playwright test --project=regression-prod",
     "test:regression:staging:dach": "playwright test --project=regression-staging tests/regression/staging-dach.spec.ts",
-    "test:regression:prod:dach": "playwright test --project=regression-prod tests/regression/production-dach.spec.ts",
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",

@@ -66,6 +66,7 @@ export const regressionBrands: BrandData[] = [
 // DACH — solo Phase Eight tiene región alemana
 export const dachRegion = { name: 'DACH', path: '/de/' };
 
+// DACH es solo Phase Eight — única marca con región alemana
 export const dachBrands = [
   {
     name: 'Phase Eight',
