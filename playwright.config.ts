@@ -128,10 +128,25 @@ export default defineConfig({
       },
     },
     {
+      name: 'regression-staging-webkit',
+      testMatch: 'regression/staging-e2e.spec.ts',
+      use: {
+        ...devices['Desktop Safari'],
+        httpCredentials,
+      },
+    },
+    {
       name: 'regression-prod',
       testMatch: 'regression/production-e2e.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
+      },
+    },
+    {
+      name: 'regression-prod-webkit',
+      testMatch: 'regression/production-e2e.spec.ts',
+      use: {
+        ...devices['Desktop Safari'],
       },
     },
     // ─── Manage Service — hotfix and release folders ──────────────────────────
