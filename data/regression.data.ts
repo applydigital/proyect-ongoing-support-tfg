@@ -16,15 +16,8 @@ export const regions = [
 // DACH se trata aparte: sitio en alemán, términos de búsqueda distintos
 export const dachRegion = { name: 'DACH', path: '/de/' };
 
+// DACH es solo Phase Eight — única marca con región alemana
 export const dachBrands = [
-  {
-    name: 'Hobbs',
-    stagingUrl: process.env.HOBBS_BASE_URL ?? 'https://stage.hobbs.com',
-    prodUrl: process.env.HOBBS_PROD_URL ?? 'https://www.hobbs.com',
-    searchTerm: 'Kleid',
-    categoryPath: '/clothing/',
-    expectedTitlePattern: /Hobbs/i,
-  },
   {
     name: 'Phase Eight',
     stagingUrl: process.env.PHASE_EIGHT_BASE_URL ?? 'https://stage.phase-eight.com',
@@ -32,14 +25,6 @@ export const dachBrands = [
     searchTerm: 'Kleid',
     categoryPath: '/clothing/',
     expectedTitlePattern: /Phase Eight/i,
-  },
-  {
-    name: 'Inside Story',
-    stagingUrl: process.env.INSIDE_STORY_BASE_URL ?? 'https://stage.insidestory.com',
-    prodUrl: process.env.INSIDE_STORY_PROD_URL ?? 'https://www.insidestory.com',
-    searchTerm: 'Kleid',
-    categoryPath: '/all-products/',
-    expectedTitlePattern: /Inside Story/i,
   },
 ];
 
@@ -64,7 +49,7 @@ export const regressionBrands = [
     name: 'Inside Story',
     stagingUrl: process.env.INSIDE_STORY_BASE_URL ?? 'https://stage.insidestory.com',
     prodUrl: process.env.INSIDE_STORY_PROD_URL ?? 'https://www.insidestory.com',
-    searchTerm: 'dress',
+    searchTerm: 'table',
     categoryPath: '/all-products/',
     expectedTitlePattern: /Inside Story/i,
   },

@@ -11,7 +11,9 @@ export const guestEmail = 'alma.gil@applydigital.com';
 export const shippingAddress = {
   firstName: 'Test',
   lastName: 'User',
+  phone: '07700900000',
   address1: '1 Oxford Street',
+  address2: '',
   city: 'London',
   postcode: 'W1D 1BS',
   country: 'United Kingdom',

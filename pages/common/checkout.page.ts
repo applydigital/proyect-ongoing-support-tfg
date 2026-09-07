@@ -4,9 +4,12 @@ import { BasePage } from './base.page';
 interface ShippingAddress {
   firstName: string;
   lastName: string;
+  phone: string;
   address1: string;
+  address2?: string;
   city: string;
   postcode: string;
+  country?: string;
 }
 
 interface CardDetails {
@@ -16,108 +19,111 @@ interface CardDetails {
 }
 
 /**
- * CheckoutPage — flujo de checkout multi-paso de SFCC SFRA.
+ * CheckoutPage — flujo de checkout de Hobbs/Phase Eight/Inside Story (SFCC SFRA).
  *
  * Pasos:
- *   1. Identificación de cliente (guest email)
- *   2. Dirección de envío
- *   3. Método de envío
- *   4. Pago (Adyen — solo en staging)
+ *   1. Login page → click "CONTINUE AS GUEST"
+ *   2. Delivery address → click "ENTER ADDRESS MANUALLY" → fill fields → CONTINUE
+ *   3. Delivery method → Standard pre-selected → CONTINUE TO PAYMENT
+ *   4. Payment → fill Adyen card fields → PLACE ORDER & PAY
  */
 export class CheckoutPage extends BasePage {
-  // Step 1 — guest email
-  readonly emailInput: Locator;
-  readonly guestCheckoutButton: Locator;
-
-  // Step 2 — shipping address
-  readonly firstNameInput: Locator;
-  readonly lastNameInput: Locator;
-  readonly address1Input: Locator;
-  readonly cityInput: Locator;
-  readonly postcodeInput: Locator;
-  readonly submitShippingButton: Locator;
-
-  // Step 3 — shipping method
-  readonly submitShippingMethodButton: Locator;
-
-  // Step 4 — payment summary (Adyen iframes)
-  readonly placeOrderButton: Locator;
 
   constructor(page: Page) {
     super(page);
-
-    this.emailInput = page.locator('input#email-guest, input[name="loginEmail"]').first();
-    this.guestCheckoutButton = page.locator('button[value="submit-customer"], .btn.submit-customer-login, button.btn.btn-primary.btn-block.guest').first();
-
-    // SFCC SFRA usa IDs con sufijo "default" para la primera dirección de envío
-    this.firstNameInput = page.locator('#shippingFirstNamedefault, input[name="firstName"]').first();
-    this.lastNameInput = page.locator('#shippingLastNamedefault, input[name="lastName"]').first();
-    this.address1Input = page.locator('#shippingAddressOnedefault, input[name="address1"]').first();
-    this.cityInput = page.locator('#shippingAddressCitydefault, input[name="city"]').first();
-    this.postcodeInput = page.locator('#shippingZipCodedefault, input[name="postalCode"]').first();
-    this.submitShippingButton = page.locator('button.submit-shipping').first();
-
-    this.submitShippingMethodButton = page.locator('button.submit-shipping-method, button[data-action="submit-shipping-method"]').first();
-
-    this.placeOrderButton = page.locator('button.place-order, button[data-action="placeOrder"]').first();
   }
 
-  /** Continúa como guest con el email indicado. */
-  async continueAsGuest(email: string): Promise<void> {
-    await this.emailInput.waitFor({ state: 'visible', timeout: 15000 });
-    await this.emailInput.fill(email);
-    await this.guestCheckoutButton.click();
+  /** Paso 1: Click en "CONTINUE AS GUEST" en la pantalla de login. */
+  async continueAsGuest(_email: string): Promise<void> {
+    const guestLink = this.page.getByRole('link', { name: /continue as guest/i });
+    await guestLink.waitFor({ state: 'visible', timeout: 15000 });
+    await guestLink.click();
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
-  /** Rellena y envía el formulario de dirección de envío. */
+  /** Paso 2: Rellena la dirección de envío usando el formulario manual. */
   async fillShippingAddress(address: ShippingAddress): Promise<void> {
-    await this.firstNameInput.waitFor({ state: 'visible', timeout: 15000 });
-    await this.firstNameInput.fill(address.firstName);
-    await this.lastNameInput.fill(address.lastName);
-    await this.address1Input.fill(address.address1);
-    await this.cityInput.fill(address.city);
-    await this.postcodeInput.fill(address.postcode);
-    await this.submitShippingButton.click();
+    // Abre el formulario manual (en lugar del postcode lookup)
+    const enterManually = this.page.getByRole('link', { name: /enter address manually/i });
+    await enterManually.waitFor({ state: 'visible', timeout: 15000 });
+    await enterManually.click();
+
+    // Nombre y apellido
+    await this.page.locator('#shippingFirstNamedefault, input[name="firstName"]').first()
+      .waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.locator('#shippingFirstNamedefault, input[name="firstName"]').first()
+      .fill(address.firstName);
+    await this.page.locator('#shippingLastNamedefault, input[name="lastName"]').first()
+      .fill(address.lastName);
+
+    // Teléfono
+    const phoneField = this.page.locator('input[name="phone"], input[name="mobileNumber"], #phone').first();
+    if (await phoneField.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await phoneField.fill(address.phone);
+    }
+
+    // Dirección
+    await this.page.locator('#shippingAddressOnedefault, input[name="address1"]').first()
+      .fill(address.address1);
+    if (address.address2) {
+      const addr2 = this.page.locator('#shippingAddressTwodefault, input[name="address2"]').first();
+      if (await addr2.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await addr2.fill(address.address2);
+      }
+    }
+    await this.page.locator('#shippingAddressCitydefault, input[name="city"]').first()
+      .fill(address.city);
+    await this.page.locator('#shippingZipCodedefault, input[name="postalCode"]').first()
+      .fill(address.postcode);
+
+    // Submit dirección
+    await this.page.locator('button.submit-shipping, button:has-text("CONTINUE")').first().click();
   }
 
-  /** Confirma el método de envío (selecciona el primero por defecto). */
+  /** Paso 3: Confirma el método de envío (Standard ya viene seleccionado). */
   async submitShippingMethod(): Promise<void> {
-    // El método de envío por defecto suele estar ya seleccionado
-    await this.submitShippingMethodButton.waitFor({ state: 'visible', timeout: 10000 });
-    await this.submitShippingMethodButton.click();
+    const continueToPayment = this.page.getByRole('button', { name: /continue to payment/i });
+    await continueToPayment.waitFor({ state: 'visible', timeout: 15000 });
+    await continueToPayment.click();
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   /**
-   * Rellena los campos de tarjeta de Adyen (iframes).
-   * Los campos de Adyen se renderizan dentro de iframes independientes.
+   * Paso 4a: Rellena los campos de tarjeta Adyen (dentro de iframes).
+   * Solo usar en staging con tarjetas de test.
    */
   async fillAdyenCard(card: CardDetails): Promise<void> {
-    // iframe del número de tarjeta
-    const cardNumberFrame = this.page.frameLocator('[data-fieldtype="encryptedCardNumber"] iframe, .adyen-checkout__card__cardNumber__input iframe').first();
-    await cardNumberFrame.locator('input[data-fieldtype="encryptedCardNumber"], input').first().fill(card.number);
+    const cardNumberFrame = this.page.frameLocator(
+      '[data-fieldtype="encryptedCardNumber"] iframe, .adyen-checkout__card__cardNumber__input iframe'
+    ).first();
+    await cardNumberFrame.locator('input').first().fill(card.number);
 
-    // iframe de la fecha de expiración
-    const expiryFrame = this.page.frameLocator('[data-fieldtype="encryptedExpiryDate"] iframe, .adyen-checkout__card__exp-date__input iframe').first();
-    await expiryFrame.locator('input[data-fieldtype="encryptedExpiryDate"], input').first().fill(card.expiry);
+    const expiryFrame = this.page.frameLocator(
+      '[data-fieldtype="encryptedExpiryDate"] iframe, .adyen-checkout__card__exp-date__input iframe'
+    ).first();
+    await expiryFrame.locator('input').first().fill(card.expiry);
 
-    // iframe del CVV
-    const cvvFrame = this.page.frameLocator('[data-fieldtype="encryptedSecurityCode"] iframe, .adyen-checkout__card__cvc__input iframe').first();
-    await cvvFrame.locator('input[data-fieldtype="encryptedSecurityCode"], input').first().fill(card.cvv);
+    const cvvFrame = this.page.frameLocator(
+      '[data-fieldtype="encryptedSecurityCode"] iframe, .adyen-checkout__card__cvc__input iframe'
+    ).first();
+    await cvvFrame.locator('input').first().fill(card.cvv);
   }
 
-  /** Verifica que el botón de pago es visible (último paso antes de pagar). */
+  /** Verifica que el botón de pago es visible — usado en tests de producción. */
   async isPlaceOrderVisible(): Promise<boolean> {
     try {
-      await this.placeOrderButton.waitFor({ state: 'visible', timeout: 10000 });
+      const btn = this.page.getByRole('button', { name: /place order/i });
+      await btn.waitFor({ state: 'visible', timeout: 10000 });
       return true;
     } catch {
       return false;
     }
   }
 
-  /** Confirma el pedido (solo usar en staging). */
+  /** Paso 4b: Confirma el pedido. Solo usar en staging. */
   async placeOrder(): Promise<void> {
-    await this.placeOrderButton.waitFor({ state: 'visible' });
-    await this.placeOrderButton.click();
+    const btn = this.page.getByRole('button', { name: /place order/i });
+    await btn.waitFor({ state: 'visible' });
+    await btn.click();
   }
 }

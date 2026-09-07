@@ -25,14 +25,14 @@ for (const brand of dachBrands) {
 
   test.describe(`[${brand.name}] [${dachRegion.name}] Staging regression`, () => {
 
-    test('homepage loads with correct brand title', async ({ page }) => {
+    test('homepage loads with correct brand title', { tag: '@non-transactional' }, async ({ page }) => {
       await page.goto(baseUrl);
       const home = new HomePage(page);
       await home.acceptCookiesIfPresent();
       await expect(page).toHaveTitle(brand.expectedTitlePattern);
     });
 
-    test('search returns results for German term', async ({ page }) => {
+    test('search returns results for German term', { tag: '@non-transactional' }, async ({ page }) => {
       await page.goto(baseUrl);
       const home = new HomePage(page);
       await home.acceptCookiesIfPresent();
@@ -40,7 +40,7 @@ for (const brand of dachBrands) {
       expect(await results.getProductCount()).toBeGreaterThan(0);
     });
 
-    test('PLP loads with products', async ({ page }) => {
+    test('PLP loads with products', { tag: '@non-transactional' }, async ({ page }) => {
       // TODO: verificar si la ruta /clothing/ es válida en DACH o usar /bekleidung/
       await page.goto(baseUrl + brand.categoryPath);
       const home = new HomePage(page);
@@ -50,7 +50,7 @@ for (const brand of dachBrands) {
       expect(await tiles.count()).toBeGreaterThan(0);
     });
 
-    test('add to cart → basket has item', async ({ page }) => {
+    test('add to cart → basket has item', { tag: '@transactional' }, async ({ page }) => {
       await page.goto(baseUrl);
       const home = new HomePage(page);
       await home.acceptCookiesIfPresent();
@@ -67,7 +67,7 @@ for (const brand of dachBrands) {
       expect(await basket.hasItems()).toBe(true);
     });
 
-    test('full checkout with payment', async ({ page }) => {
+    test('full checkout with payment', { tag: '@transactional' }, async ({ page }) => {
       await page.goto(baseUrl);
       const home = new HomePage(page);
       await home.acceptCookiesIfPresent();

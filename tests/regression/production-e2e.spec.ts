@@ -28,14 +28,14 @@ for (const brand of regressionBrands) {
 
     test.describe(`[${brand.name}] [${region.name}] Production regression`, () => {
 
-      test('homepage loads with correct title', async ({ page }) => {
+      test('homepage loads with correct title', { tag: '@non-transactional' }, async ({ page }) => {
         await page.goto(baseUrl);
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
         await expect(page).toHaveTitle(brand.expectedTitlePattern);
       });
 
-      test('search returns results', async ({ page }) => {
+      test('search returns results', { tag: '@non-transactional' }, async ({ page }) => {
         await page.goto(baseUrl);
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
@@ -43,7 +43,7 @@ for (const brand of regressionBrands) {
         expect(await results.getProductCount()).toBeGreaterThan(0);
       });
 
-      test('PLP loads with products', async ({ page }) => {
+      test('PLP loads with products', { tag: '@non-transactional' }, async ({ page }) => {
         await page.goto(baseUrl + brand.categoryPath);
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
@@ -52,7 +52,7 @@ for (const brand of regressionBrands) {
         expect(await tiles.count()).toBeGreaterThan(0);
       });
 
-      test('add to cart → basket has item', async ({ page }) => {
+      test('add to cart → basket has item', { tag: '@non-transactional' }, async ({ page }) => {
         await page.goto(baseUrl);
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
@@ -69,7 +69,7 @@ for (const brand of regressionBrands) {
         expect(await basket.hasItems()).toBe(true);
       });
 
-      test('checkout is reachable — stops before payment', async ({ page }) => {
+      test('checkout is reachable — stops before payment', { tag: '@non-transactional' }, async ({ page }) => {
         await page.goto(baseUrl);
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
