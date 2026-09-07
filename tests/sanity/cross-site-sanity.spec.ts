@@ -35,7 +35,7 @@ for (const brand of sanitySiteData) {
 
     test.describe(`[${brand.name}] [${region.name}]`, () => {
 
-      test('homepage responds with 200', async ({ page }) => {
+      test('homepage responds with 200', { tag: '@non-transactional' }, async ({ page }) => {
         const response = await page.goto(baseUrl);
         expect(
           response?.status(),
@@ -43,7 +43,7 @@ for (const brand of sanitySiteData) {
         ).toBe(200);
       });
 
-      test('search returns product results', async ({ page }) => {
+      test('search returns product results', { tag: '@non-transactional' }, async ({ page }) => {
         await page.goto(baseUrl);
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
@@ -55,7 +55,7 @@ for (const brand of sanitySiteData) {
         ).toBeGreaterThan(0);
       });
 
-      test('PLP loads with products', async ({ page }) => {
+      test('PLP loads with products', { tag: '@non-transactional' }, async ({ page }) => {
         const response = await page.goto(baseUrl + brand.categoryPath);
         expect(response?.status()).toBe(200);
         const plp = new ProductListPage(page);
@@ -68,7 +68,7 @@ for (const brand of sanitySiteData) {
         ).toBeGreaterThan(0);
       });
 
-      test('PDP loads and add-to-cart is available', async ({ page }) => {
+      test('PDP loads and add-to-cart is available', { tag: '@non-transactional' }, async ({ page }) => {
         await page.goto(baseUrl + brand.categoryPath);
         const plp = new ProductListPage(page);
         await plp.acceptCookiesIfPresent();
@@ -79,7 +79,7 @@ for (const brand of sanitySiteData) {
         await expect(pdp.addToCartButton).toBeVisible();
       });
 
-      test('footer is visible', async ({ page }) => {
+      test('footer is visible', { tag: '@non-transactional' }, async ({ page }) => {
         await page.goto(baseUrl);
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
