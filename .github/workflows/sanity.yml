@@ -16,12 +16,19 @@ jobs:
   sanity:
     name: Sanity — ${{ github.event.inputs.environment }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     env:
+      CI: true
       TARGET_ENV: ${{ github.event.inputs.environment }}
-      BASIC_AUTH_USER: ${{ secrets.BASIC_AUTH_USER }}
+      BASIC_AUTH_USERNAME: ${{ secrets.BASIC_AUTH_USER }}
       BASIC_AUTH_PASSWORD: ${{ secrets.BASIC_AUTH_PASSWORD }}
+      HOBBS_BASE_URL: ${{ secrets.HOBBS_BASE_URL }}
+      HOBBS_PROD_URL: ${{ secrets.HOBBS_PROD_URL }}
+      PHASE_EIGHT_BASE_URL: ${{ secrets.PHASE_EIGHT_BASE_URL }}
+      PHASE_EIGHT_PROD_URL: ${{ secrets.PHASE_EIGHT_PROD_URL }}
+      INSIDE_STORY_BASE_URL: ${{ secrets.INSIDE_STORY_BASE_URL }}
+      INSIDE_STORY_PROD_URL: ${{ secrets.INSIDE_STORY_PROD_URL }}
 
     steps:
       - uses: actions/checkout@v4
@@ -37,13 +44,27 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox webkit
 
+      - name: Verify environment
+        run: |
+          node --version
+          npx playwright --version
+          echo "TARGET_ENV: $TARGET_ENV"
+
       - name: Run sanity suite
-        run: npm run test:sanity
+        run: npx playwright test --project=sanity-chrome --project=sanity-firefox --project=sanity-safari
 
       - name: Upload HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: sanity-report-${{ github.event.inputs.environment }}-${{ github.run_number }}
-          path: reports/
+          path: reports/html/
           retention-days: 14
+
+      - name: Upload failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sanity-traces-${{ github.event.inputs.environment }}-${{ github.run_number }}
+          path: test-results/
+          retention-days: 7
