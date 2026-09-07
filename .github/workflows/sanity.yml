@@ -22,14 +22,13 @@ jobs:
     env:
       CI: true
       TARGET_ENV: ${{ github.event.inputs.environment }}
+      # Credentials for HTTP Basic Auth on staging
+      # playwright.config.ts reads BASIC_AUTH_USERNAME and BASIC_AUTH_PASSWORD
       BASIC_AUTH_USERNAME: ${{ secrets.BASIC_AUTH_USER }}
       BASIC_AUTH_PASSWORD: ${{ secrets.BASIC_AUTH_PASSWORD }}
-      HOBBS_BASE_URL: ${{ secrets.HOBBS_BASE_URL }}
-      HOBBS_PROD_URL: ${{ secrets.HOBBS_PROD_URL }}
-      PHASE_EIGHT_BASE_URL: ${{ secrets.PHASE_EIGHT_BASE_URL }}
-      PHASE_EIGHT_PROD_URL: ${{ secrets.PHASE_EIGHT_PROD_URL }}
-      INSIDE_STORY_BASE_URL: ${{ secrets.INSIDE_STORY_BASE_URL }}
-      INSIDE_STORY_PROD_URL: ${{ secrets.INSIDE_STORY_PROD_URL }}
+      # NOTE: URL env vars intentionally omitted.
+      # sanity.data.ts uses ?? fallbacks (e.g. process.env.HOBBS_BASE_URL ?? 'https://stage.hobbs.com')
+      # Setting them to empty string here would break the fallback — only add if real secrets exist.
 
     steps:
       - uses: actions/checkout@v4
@@ -52,6 +51,7 @@ jobs:
           echo "TARGET_ENV: $TARGET_ENV"
           node -e "console.log('BASIC_AUTH_USERNAME length:', (process.env.BASIC_AUTH_USERNAME||'').length)"
           node -e "console.log('BASIC_AUTH_PASSWORD length:', (process.env.BASIC_AUTH_PASSWORD||'').length)"
+          node -e "console.log('HOBBS_BASE_URL:', process.env.HOBBS_BASE_URL || '(undefined — fallback will be used)')"
 
       - name: Run sanity suite
         run: npx playwright test --project=sanity-chrome --project=sanity-firefox --project=sanity-safari
