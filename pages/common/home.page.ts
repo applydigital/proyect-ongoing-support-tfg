@@ -34,15 +34,25 @@ export class HomePage extends BasePage {
    * Devuelve el Page Object de la página de resultados.
    */
   async search(term: string): Promise<SearchResultsPage> {
-    // "ENJOY 15% OFF" puede aparecer justo después del reload de Globale GUARDAR,
-    // fuera de la ventana de dismissModalsIfPresent(). Check rápido y puntual.
+    // Eliminar del DOM cualquier overlay que pueda interceptar el click en el search box:
+    // Globale popup, bx-campaign (welcome mat), overlay residual. Esto es necesario
+    // porque dismissModalsIfPresent() puede no alcanzar a eliminarlos si Globale
+    // los re-inyecta tras el reload de GUARDAR.
+    await this.page.evaluate(() => {
+      document.getElementById('globalePopupWrapper')?.remove();
+      document.getElementById('globale_overlay')?.remove();
+      document.querySelectorAll('[class*="globale_overlay"], [class*="globale-overlay"]').forEach(el => el.remove());
+      document.querySelectorAll('[id^="bx-campaign-"], .bx-type-overlay').forEach(el => el.remove());
+    }).catch(() => {});
+
+    // También intentar click en DECLINE OFFER si el welcome mat apareció después del evaluate
     try {
       const declineBtn = this.page.getByRole('button', { name: /decline offer/i });
-      if (await declineBtn.isVisible({ timeout: 3000 })) await declineBtn.click();
+      if (await declineBtn.isVisible({ timeout: 2000 })) await declineBtn.click();
     } catch { /* modal no presente */ }
 
     await this.searchBox.waitFor({ state: 'visible' });
-    await this.searchBox.click({ force: true }); // force por si queda algún overlay encima
+    await this.searchBox.click({ force: true });
     await this.searchBox.fill(term);
     await this.searchBox.press('Enter');
     const results = new SearchResultsPage(this.page);

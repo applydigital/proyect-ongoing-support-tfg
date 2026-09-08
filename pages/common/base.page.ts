@@ -108,12 +108,15 @@ export class BasePage {
       }
     } catch { /* modal no presente */ }
 
-    // ── 3. Overlay residual de Globale ───────────────────────────────────────
-    try {
-      const globaleOverlay = this.page.locator('#globale_overlay, .globale_overlay').first();
-      if (await globaleOverlay.isVisible({ timeout: 2000 })) {
-        await globaleOverlay.evaluate(el => el.remove());
-      }
-    } catch { /* overlay no presente */ }
+    // ── 3. Eliminación nuclear de overlays Globale y marketing que bloquean interacción ──
+    // Aunque GUARDAR sete la cookie, Globale puede reinjectar el popup brevemente
+    // después del reload. Eliminarlo del DOM garantiza que no intercepte clicks.
+    await this.page.evaluate(() => {
+      document.getElementById('globalePopupWrapper')?.remove();
+      document.getElementById('globale_overlay')?.remove();
+      document.querySelectorAll('[class*="globale_overlay"], [class*="globale-overlay"]').forEach(el => el.remove());
+      // welcome mat bxc (brandcrush/klaviyo overlay)
+      document.querySelectorAll('[id^="bx-campaign-"], .bx-type-overlay').forEach(el => el.remove());
+    }).catch(() => { /* página puede haber navegado */ });
   }
 }
