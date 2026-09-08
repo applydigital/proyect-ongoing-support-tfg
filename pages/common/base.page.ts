@@ -95,7 +95,7 @@ export class BasePage {
         // ── 1c. Botón GUARDAR ────────────────────────────────────────────────
         // Texto en español porque el popup detecta IP de Argentina.
         // Iniciar escucha de navegación ANTES del click.
-        const saveBtn = globalePopup.locator('button, [role="button"]').filter({ hasText: /guardar|save/i }).first();
+        const saveBtn = globalePopup.locator('button, a, [role="button"], [type="submit"]').filter({ hasText: /guardar|save/i }).first();
         if (await saveBtn.isVisible({ timeout: 5000 })) {
           const waitNav = this.page.waitForNavigation({
             waitUntil: 'domcontentloaded',
