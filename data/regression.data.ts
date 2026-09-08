@@ -19,6 +19,9 @@ export const regions = [
 // DACH se trata aparte: sitio en alemán, términos de búsqueda distintos
 export const dachRegion = { name: 'DACH', path: '/de/' };
 
+// Inside Story no tiene tienda DACH (solo UK). Testear /de/ devuelve
+// un fallback SFCC con título raw como "Sites-IS-DACH-Site | 3.3.0",
+// que hace fallar toHaveTitle + cascada de todos los tests downstream.
 export const dachBrands = [
   {
     name: 'Hobbs',
@@ -35,14 +38,6 @@ export const dachBrands = [
     searchTerm: 'Kleid',
     categoryPath: '/clothing/',
     expectedTitlePattern: /Phase Eight/i,
-  },
-  {
-    name: 'Inside Story',
-    stagingUrl: process.env.INSIDE_STORY_BASE_URL ?? 'https://stage.insidestory.com',
-    prodUrl: process.env.INSIDE_STORY_PROD_URL ?? 'https://www.insidestory.com',
-    searchTerm: 'Kleid',
-    categoryPath: '/all-products/',
-    expectedTitlePattern: /Inside Story/i,
   },
 ];
 
@@ -91,7 +86,9 @@ export const regressionBrands: RegressionBrand[] = [
     name: 'Inside Story',
     stagingUrl: process.env.INSIDE_STORY_BASE_URL ?? 'https://stage.insidestory.com',
     prodUrl: process.env.INSIDE_STORY_PROD_URL ?? 'https://www.insidestory.com',
-    searchTerm: 'dress',
+    // Inside Story es home goods (cushions, throws, candles), no ropa.
+    // 'dress' devuelve 0 productos → cambiar a un término del catálogo real.
+    searchTerm: 'cushion',
     categoryPath: '/all-products/',
     expectedTitlePattern: /Inside Story/i,
     regions: [
