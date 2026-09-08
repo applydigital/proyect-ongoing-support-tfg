@@ -140,6 +140,10 @@ export default defineConfig({
       testMatch: 'regression/production-*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
+        // Evita que Globale detecte Playwright como bot y bloquee el seteo de cookies.
+        launchOptions: {
+          args: ['--disable-blink-features=AutomationControlled'],
+        },
       },
     },
     {

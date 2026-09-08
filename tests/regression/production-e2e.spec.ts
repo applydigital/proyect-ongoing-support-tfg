@@ -22,6 +22,14 @@ import { BasketPage } from '@pages/common/basket.page';
 import { CheckoutPage } from '@pages/common/checkout.page';
 import { ProductListPage } from '@pages/common/product-list.page';
 
+// Ocultar navigator.webdriver antes de cada navegación para evitar detección de bots
+// (Globale bloquea el seteo de cookies en modo headless cuando detecta automatización).
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+  });
+});
+
 for (const brand of regressionBrands) {
   for (const region of brand.regions) {
     const baseUrl = brand.prodUrl + (region.path === '/' ? '' : region.path.replace(/\/$/, ''));

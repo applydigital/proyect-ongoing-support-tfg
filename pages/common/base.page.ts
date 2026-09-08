@@ -66,9 +66,9 @@ export class BasePage {
     try {
       const globalePopup = this.page.locator('#globalePopupWrapper');
       if (await globalePopup.isVisible({ timeout: 5000 })) {
+        // ── 1a. Seleccionar país United Kingdom ──────────────────────────────
         const countrySelect = globalePopup.locator('select').first();
         if (await countrySelect.isVisible({ timeout: 3000 })) {
-          // Intentar selectOption por valor ISO (GB) y por label como fallback
           try {
             await countrySelect.selectOption('GB');
           } catch {
@@ -78,21 +78,34 @@ export class BasePage {
               await countrySelect.selectOption({ label: 'UNITED KINGDOM' });
             }
           }
+          // Dejar que el JS de Globale procese el cambio de país (puede actualizar
+          // la moneda automáticamente y preparar el estado interno de GUARDAR).
+          await this.page.waitForTimeout(500);
         }
-        // Botón GUARDAR — texto en español porque el popup detecta IP Argentina
-        const saveBtn = globalePopup.locator('button').filter({ hasText: /guardar|save/i }).first();
-        if (await saveBtn.isVisible({ timeout: 3000 })) {
-          // Iniciar escucha de navegación ANTES del click — patrón correcto de Playwright
-          // para no perder el evento si el reload arranca de forma síncrona con el click
+        // ── 1b. Seleccionar moneda Pound Sterling (UK) ───────────────────────
+        // El popup tiene dos <select>: país y moneda. Globale requiere que la
+        // moneda coincida con el país; si no se actualiza, GUARDAR puede fallar.
+        try {
+          const currencySelect = globalePopup.locator('select').nth(1);
+          if (await currencySelect.isVisible({ timeout: 2000 })) {
+            await currencySelect.selectOption({ label: 'Pound Sterling' });
+          }
+        } catch { /* moneda no presente o ya actualizada */ }
+
+        // ── 1c. Botón GUARDAR ────────────────────────────────────────────────
+        // Texto en español porque el popup detecta IP de Argentina.
+        // Iniciar escucha de navegación ANTES del click.
+        const saveBtn = globalePopup.locator('button, [role="button"]').filter({ hasText: /guardar|save/i }).first();
+        if (await saveBtn.isVisible({ timeout: 5000 })) {
           const waitNav = this.page.waitForNavigation({
             waitUntil: 'domcontentloaded',
-            timeout: 10000,
+            timeout: 12000,
           }).catch(() => null);
           await saveBtn.click();
-          await waitNav; // null si Globale no hizo reload; si lo hizo, esperamos domcontentloaded
+          await waitNav;
           globaleWasSaved = true;
         }
-        await globalePopup.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+        await globalePopup.waitFor({ state: 'hidden', timeout: 8000 }).catch(() => {});
       }
     } catch { /* popup no presente */ }
 
