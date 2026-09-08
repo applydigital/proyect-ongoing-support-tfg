@@ -34,8 +34,15 @@ export class HomePage extends BasePage {
    * Devuelve el Page Object de la página de resultados.
    */
   async search(term: string): Promise<SearchResultsPage> {
+    // "ENJOY 15% OFF" puede aparecer justo después del reload de Globale GUARDAR,
+    // fuera de la ventana de dismissModalsIfPresent(). Check rápido y puntual.
+    try {
+      const declineBtn = this.page.getByRole('button', { name: /decline offer/i });
+      if (await declineBtn.isVisible({ timeout: 3000 })) await declineBtn.click();
+    } catch { /* modal no presente */ }
+
     await this.searchBox.waitFor({ state: 'visible' });
-    await this.searchBox.click();
+    await this.searchBox.click({ force: true }); // force por si queda algún overlay encima
     await this.searchBox.fill(term);
     await this.searchBox.press('Enter');
     const results = new SearchResultsPage(this.page);
