@@ -28,6 +28,12 @@ for (const brand of regressionBrands) {
 
     test.describe(`[${brand.name}] [${region.name}] Production regression`, () => {
 
+      // Bloquear Globale antes de cada test: desde IP no-UK, Globale intercepta add-to-cart
+      // y redirige /cart → home. Bloquearlo simula la experiencia de un usuario UK real.
+      test.beforeEach(async ({ page }) => {
+        await page.route(/global-e\.com|globaleweb\.com/, route => route.abort());
+      });
+
       test('homepage loads with correct title', { tag: '@non-transactional' }, async ({ page }) => {
         await page.goto(baseUrl);
         const home = new HomePage(page);
