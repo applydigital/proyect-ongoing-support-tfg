@@ -70,12 +70,26 @@ export class BasePage {
       });
     } catch { /* no presente */ }
 
-    // Welcome mat "ENJOY X% OFF" — botón DECLINE OFFER
+    // Welcome mat — variante "DECLINE OFFER"
     try {
       const declineBtn = this.page.getByRole('button', { name: /decline offer/i });
-      if (await declineBtn.isVisible({ timeout: 5000 })) {
-        await declineBtn.click();
-      }
+      if (await declineBtn.isVisible({ timeout: 3000 })) await declineBtn.click();
+    } catch { /* modal no presente */ }
+
+    // Welcome mat — variante "YES PLEASE" (Hobbs/Phase Eight discount overlay)
+    // No hacemos clic en "YES PLEASE" (abriría formulario de email); usamos Escape para cerrar
+    try {
+      const yesPleaseBtn = this.page.getByRole('button', { name: /yes please/i });
+      if (await yesPleaseBtn.isVisible({ timeout: 3000 })) await this.page.keyboard.press('Escape');
+    } catch { /* modal no presente */ }
+
+    // Botón × genérico de cierre de overlay (cualquier welcome mat con close button)
+    try {
+      const closeX = this.page.locator(
+        '.bx-close, .bx-close-link, [class*="welcome"] .close, [class*="modal"] .close, ' +
+        '[aria-label="Close"], [aria-label="close"], button[class*="close"]:not(#onetrust-accept-btn-handler)'
+      ).first();
+      if (await closeX.isVisible({ timeout: 2000 })) await closeX.click();
     } catch { /* modal no presente */ }
 
     // Selector de país/región — detectamos por CANCELAR/CANCEL pero cerramos con Escape
