@@ -25,13 +25,19 @@ export class ProductDetailPage extends BasePage {
       '.size-btn:not(.unselectable):not(.out-of-stock), ' +
       'button[data-attr="size"]:not([disabled])'
     );
-    // Excluimos el estado "Select Size" — el botón existe y no está disabled,
-    // pero SFRA no lo activa hasta que la talla se registra por AJAX. Clickearlo
-    // en ese estado no hace nada. Con esta exclusión, waitFor(visible) espera
-    // efectivamente a que el add-to-cart quede realmente accionable.
-    this.addToCartButton = page.locator('button.add-to-cart:not([disabled])')
-      .filter({ hasNotText: /select size/i })
-      .first();
+    // El PDP tiene DOS botones de add-to-cart en el DOM: el principal (dentro
+    // de .product-detail__add-to-cart o .prices-add-to-cart-actions) y otro
+    // en la sticky bar (.js-sticky-add-to-bag-btn / .stickyAddToBag). Este
+    // último a veces cae fuera del viewport y hace que .click() timeout.
+    // Anclamos al contenedor principal para evitar la sticky bar.
+    // Además excluimos el estado "Select Size": el botón existe pero SFRA
+    // no lo activa hasta que la talla se registra por AJAX.
+    this.addToCartButton = page.locator(
+      '.product-detail__add-to-cart button.add-to-cart:not([disabled]), ' +
+      '.prices-add-to-cart-actions button.add-to-cart:not([disabled]), ' +
+      // Fallback amplio, pero excluyendo cualquier variante sticky
+      'button.add-to-cart:not([disabled]):not(.js-sticky-add-to-bag-btn):not(.stickyAddToBag):not(.stickyBarBagButton)'
+    ).filter({ hasNotText: /select size/i }).first();
     // Tras añadir al carrito aparece un mini-cart con enlace a la cesta
     this.minicartGoToCart = page.locator('.minicart .go-to-cart, .mini-cart .view-cart, a[href*="/cart"]').first();
     this.addToCartConfirmation = page.locator('.add-to-cart-messages, .cart-and-ipay').first();
@@ -62,7 +68,11 @@ export class ProductDetailPage extends BasePage {
 
   /** Añade el producto al carrito y navega a la cesta. */
   async addToCartAndGoToBasket(): Promise<BasketPage> {
-    await this.addToCartButton.waitFor({ state: 'visible' });
+    await this.addToCartButton.waitFor({ state: 'visible', timeout: 30000 });
+    // Un último dismissModals por si el overlay de Global-e reapareció post-scroll
+    await this.dismissModalsIfPresent();
+    // Aseguramos que el botón esté en viewport antes de hacer click.
+    await this.addToCartButton.scrollIntoViewIfNeeded();
     await this.addToCartButton.click();
 
     // Navegar directamente al carrito es más estable que esperar el mini-cart
