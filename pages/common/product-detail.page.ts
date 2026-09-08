@@ -62,12 +62,16 @@ export class ProductDetailPage extends BasePage {
   async addToCartAndGoToBasket(): Promise<BasketPage> {
     await this.addToCartButton.waitFor({ state: 'visible', timeout: 30000 });
     await this.dismissModalsIfPresent();
-    await this.addToCartButton.scrollIntoViewIfNeeded();
-    // force:true bypasea el check de pointer-events del Globale popup (solo aparece por IP no-UK)
+    // force:true bypasa pointer-events (Globale popup) y evita necesidad de scrollIntoView
     await this.addToCartButton.click({ force: true });
 
-    // Navegar directamente al carrito usando URL absoluta (regression no tiene baseURL configurado)
-    const cartUrl = new URL('/cart', this.page.url()).toString();
+    // Preservar el prefijo de región en la URL del carrito (/au/cart, /us/cart, etc.)
+    // new URL('/cart', url) siempre genera /<origin>/cart ignorando el prefijo de región
+    const currentUrl = new URL(this.page.url());
+    const firstSegment = currentUrl.pathname.split('/')[1];
+    const knownRegions = ['au', 'us', 'eu', 'row', 'de'];
+    const regionPrefix = knownRegions.includes(firstSegment) ? `/${firstSegment}` : '';
+    const cartUrl = `${currentUrl.origin}${regionPrefix}/cart`;
     await this.page.goto(cartUrl);
     return new BasketPage(this.page);
   }
