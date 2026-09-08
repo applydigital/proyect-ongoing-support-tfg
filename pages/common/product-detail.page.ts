@@ -25,12 +25,13 @@ export class ProductDetailPage extends BasePage {
       '.size-btn:not(.unselectable):not(.out-of-stock), ' +
       'button[data-attr="size"]:not([disabled])'
     );
-    // Ancla al contenedor principal (excluye sticky bar) y cubre ambas variantes de clase:
-    // - add-to-cart (SFRA estándar, Phase Eight, Inside Story)
-    // - add-to-bag  (Hobbs production usa esta clase aunque el texto diga "ADD TO BAG")
+    // Ancla al contenedor principal para evitar la sticky bar.
+    // Cubre ambas variantes de clase (add-to-cart y add-to-bag según la marca/config):
     this.addToCartButton = page.locator(
-      '.product-detail__add-to-cart button:not([disabled]), ' +
-      '.prices-add-to-cart-actions button:not([disabled]), ' +
+      '.product-detail__add-to-cart button.add-to-cart:not([disabled]), ' +
+      '.product-detail__add-to-cart button.add-to-bag:not([disabled]), ' +
+      '.prices-add-to-cart-actions button.add-to-cart:not([disabled]), ' +
+      '.prices-add-to-cart-actions button.add-to-bag:not([disabled]), ' +
       'button.add-to-cart:not([disabled]):not(.js-sticky-add-to-bag-btn):not(.stickyAddToBag):not(.stickyBarBagButton), ' +
       'button.add-to-bag:not([disabled]):not(.js-sticky-add-to-bag-btn):not(.stickyAddToBag):not(.stickyBarBagButton)'
     ).filter({ hasNotText: /select.?size/i }).first();

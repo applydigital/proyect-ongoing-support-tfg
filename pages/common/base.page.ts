@@ -83,15 +83,6 @@ export class BasePage {
       if (await yesPleaseBtn.isVisible({ timeout: 3000 })) await this.page.keyboard.press('Escape');
     } catch { /* modal no presente */ }
 
-    // Botón × genérico de cierre de overlay (cualquier welcome mat con close button)
-    try {
-      const closeX = this.page.locator(
-        '.bx-close, .bx-close-link, [class*="welcome"] .close, [class*="modal"] .close, ' +
-        '[aria-label="Close"], [aria-label="close"], button[class*="close"]:not(#onetrust-accept-btn-handler)'
-      ).first();
-      if (await closeX.isVisible({ timeout: 2000 })) await closeX.click();
-    } catch { /* modal no presente */ }
-
     // Selector de país/región — detectamos por CANCELAR/CANCEL pero cerramos con Escape
     try {
       const cancelEl = this.page.locator('button, a, [role="button"]').filter({ hasText: /^cancel(ar)?$/i }).first();
