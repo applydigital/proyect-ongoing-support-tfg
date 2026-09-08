@@ -72,5 +72,23 @@ export class BasePage {
         await cancelBtn.click();
       }
     } catch { /* modal no presente */ }
+
+    // Global-e regional popup (aparece en rutas internacionales /au/, /eu/, /row/, /de/)
+    // — intercepta pointer events y bloquea clicks en tiles hasta que se cierra.
+    try {
+      const globalePopup = this.page.locator('#globalePopupWrapper');
+      if (await globalePopup.isVisible({ timeout: 5000 })) {
+        const closeBtn = globalePopup.locator(
+          'button.close, .globale_popup_close, [aria-label*="close" i]'
+        ).first();
+        if (await closeBtn.isVisible({ timeout: 2000 })) {
+          await closeBtn.click();
+        } else {
+          // Fallback: si no encontramos botón conocido, escondemos el wrapper para no bloquear
+          await globalePopup.evaluate(el => el.remove());
+        }
+        await globalePopup.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+      }
+    } catch { /* modal no presente */ }
   }
 }

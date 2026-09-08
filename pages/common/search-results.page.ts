@@ -17,7 +17,9 @@ export class SearchResultsPage extends BasePage {
   constructor(page: Page) {
     super(page);
     this.grid = page.locator('.product-grid').first();
-    this.productTiles = page.locator('.product-tile');
+    // Excluye tiles de recomendaciones de Constructor.io (`data-cnstrc-item`),
+    // que están ocultos hasta hacer scroll y confunden a `.first()`.
+    this.productTiles = page.locator('.product-tile:not([data-cnstrc-item])');
     this.resultCount = page.locator('.filters__result-count').first();
   }
 
@@ -39,5 +41,18 @@ export class SearchResultsPage extends BasePage {
   /** Texto del contador de resultados (ej: "120 Results"). */
   async getResultCountText(): Promise<string> {
     return (await this.resultCount.textContent())?.trim() ?? '';
+  }
+
+  /**
+   * Navega al primer producto de la lista. Igual que `ProductListPage.clickFirstProduct`:
+   * en vez de clickear el link (que puede quedar interceptado por hover/carousel
+   * o por un popup de Global-e), leemos el href y navegamos directamente.
+   */
+  async clickFirstProduct(): Promise<void> {
+    await this.dismissModalsIfPresent();
+    const href = await this.productTiles.first().locator('a').first().getAttribute('href');
+    const absoluteUrl = new URL(href!, this.page.url()).toString();
+    await this.page.goto(absoluteUrl);
+    await this.page.waitForLoadState('domcontentloaded');
   }
 }

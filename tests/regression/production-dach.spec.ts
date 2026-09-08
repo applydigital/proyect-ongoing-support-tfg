@@ -26,6 +26,7 @@ for (const brand of dachBrands) {
       await page.goto(baseUrl);
       const home = new HomePage(page);
       await home.acceptCookiesIfPresent();
+      await home.dismissModalsIfPresent();
       await expect(page).toHaveTitle(brand.expectedTitlePattern);
     });
 
@@ -33,6 +34,7 @@ for (const brand of dachBrands) {
       await page.goto(baseUrl);
       const home = new HomePage(page);
       await home.acceptCookiesIfPresent();
+      await home.dismissModalsIfPresent();
       const results: SearchResultsPage = await home.search(brand.searchTerm);
       expect(await results.getProductCount()).toBeGreaterThan(0);
     });
@@ -42,7 +44,8 @@ for (const brand of dachBrands) {
       await page.goto(baseUrl + brand.categoryPath);
       const home = new HomePage(page);
       await home.acceptCookiesIfPresent();
-      const tiles = page.locator('.product-tile');
+      await home.dismissModalsIfPresent();
+      const tiles = page.locator('.product-tile:not([data-cnstrc-item])');
       await expect(tiles.first()).toBeVisible();
       expect(await tiles.count()).toBeGreaterThan(0);
     });
@@ -51,13 +54,14 @@ for (const brand of dachBrands) {
       await page.goto(baseUrl);
       const home = new HomePage(page);
       await home.acceptCookiesIfPresent();
+      await home.dismissModalsIfPresent();
 
       const results: SearchResultsPage = await home.search(brand.searchTerm);
-      await results.productTiles.first().locator('a').first().click();
-      await page.waitForLoadState('domcontentloaded');
+      await results.clickFirstProduct();
 
       const pdp = new ProductDetailPage(page);
       await pdp.acceptCookiesIfPresent();
+      await pdp.dismissModalsIfPresent();
       await pdp.selectFirstAvailableSize();
       const basket: BasketPage = await pdp.addToCartAndGoToBasket();
 
@@ -68,13 +72,14 @@ for (const brand of dachBrands) {
       await page.goto(baseUrl);
       const home = new HomePage(page);
       await home.acceptCookiesIfPresent();
+      await home.dismissModalsIfPresent();
 
       const results: SearchResultsPage = await home.search(brand.searchTerm);
-      await results.productTiles.first().locator('a').first().click();
-      await page.waitForLoadState('domcontentloaded');
+      await results.clickFirstProduct();
 
       const pdp = new ProductDetailPage(page);
       await pdp.acceptCookiesIfPresent();
+      await pdp.dismissModalsIfPresent();
       await pdp.selectFirstAvailableSize();
       const basket: BasketPage = await pdp.addToCartAndGoToBasket();
 
