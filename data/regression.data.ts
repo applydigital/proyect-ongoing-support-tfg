@@ -54,7 +54,8 @@ export const regressionBrands: BrandData[] = [
     name: 'Inside Story',
     stagingUrl: process.env.INSIDE_STORY_BASE_URL ?? 'https://stage.insidestory.com',
     prodUrl: process.env.INSIDE_STORY_PROD_URL ?? 'https://www.insidestory.com',
-    searchTerm: 'table',
+    // Inside Story es home goods (cushions, throws, candles), no ropa.
+    searchTerm: 'cushion',
     categoryPath: '/all-products/',
     expectedTitlePattern: /Inside Story/i,
     regions: [

@@ -16,30 +16,42 @@ export class ProductDetailPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    // Botones de talla disponibles (excluye agotados y deshabilitados)
-    this.sizeButtons = page.locator('.size-btn:not(.unselectable):not(.out-of-stock), button[data-attr="size"]:not([disabled])');
-    this.addToCartButton = page.locator('button.add-to-cart:not([disabled])').first();
-    // Tras añadir al carrito aparece un mini-cart con enlace a la cesta
+    // Tallas disponibles. Cubre 3 markups SFRA:
+    //  - Capsules list (Hobbs, Phase Eight actuales): <li class="size-capsules__list_item">
+    //  - Legacy buttons: <button class="size-btn">
+    //  - Variation attribute buttons: <button data-attr="size">
+    this.sizeButtons = page.locator(
+      '.size-capsules__list_item:not(.unselectable):not(.unavailable):not(.out-of-stock):not(.disabled):not([aria-disabled="true"]), ' +
+      '.size-btn:not(.unselectable):not(.out-of-stock), ' +
+      'button[data-attr="size"]:not([disabled])'
+    );
+    // Ancla al contenedor principal para evitar la sticky bar (stickyAddToBag)
+    // y excluye el estado "Select Size" (botón existe pero no activo hasta seleccionar talla).
+    this.addToCartButton = page.locator(
+      '.product-detail__add-to-cart button.add-to-cart:not([disabled]), ' +
+      '.prices-add-to-cart-actions button.add-to-cart:not([disabled]), ' +
+      'button.add-to-cart:not([disabled]):not(.js-sticky-add-to-bag-btn):not(.stickyAddToBag):not(.stickyBarBagButton)'
+    ).filter({ hasNotText: /select size/i }).first();
     this.minicartGoToCart = page.locator('.minicart .go-to-cart, .mini-cart .view-cart, a[href*="/cart"]').first();
     this.addToCartConfirmation = page.locator('.add-to-cart-messages, .cart-and-ipay').first();
   }
 
-  /**
-   * Espera a que la PDP esté lista verificando que el botón de add-to-cart
-   * existe — es la señal más fiable de que la página cargó correctamente.
-   */
   async waitForLoaded(): Promise<void> {
     await this.page.waitForLoadState('domcontentloaded');
     await this.dismissModalsIfPresent();
     await this.addToCartButton.waitFor({ state: 'visible', timeout: 30000 });
   }
 
-  /** Selecciona la primera talla disponible. Si el producto no tiene tallas (ej: hogar, talla única) lo omite. */
+  /**
+   * Selecciona la primera talla disponible.
+   * Si el producto no tiene tallas (home goods, talla única) lo omite sin fallar.
+   */
   async selectFirstAvailableSize(): Promise<void> {
     await this.dismissModalsIfPresent();
     const firstSize = this.sizeButtons.first();
     try {
-      await firstSize.waitFor({ state: 'visible', timeout: 5000 });
+      await firstSize.waitFor({ state: 'visible', timeout: 30000 });
+      await this.dismissModalsIfPresent();
       await firstSize.click();
     } catch {
       // Sin selector de talla (producto de talla única o artículo de hogar) — no es necesario
@@ -48,8 +60,9 @@ export class ProductDetailPage extends BasePage {
 
   /** Añade el producto al carrito y navega a la cesta. */
   async addToCartAndGoToBasket(): Promise<BasketPage> {
+    await this.addToCartButton.waitFor({ state: 'visible', timeout: 30000 });
     await this.dismissModalsIfPresent();
-    await this.addToCartButton.waitFor({ state: 'visible' });
+    await this.addToCartButton.scrollIntoViewIfNeeded();
     await this.addToCartButton.click();
 
     // Navegar directamente al carrito usando URL absoluta (regression no tiene baseURL configurado)

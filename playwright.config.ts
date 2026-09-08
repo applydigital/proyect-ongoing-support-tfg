@@ -120,7 +120,8 @@ export default defineConfig({
     // ─── Regression — staging y producción multi-región ──────────────────────
     {
       name: 'regression-staging',
-      testMatch: 'regression/staging-e2e.spec.ts',
+      // Matchea staging-e2e.spec.ts y staging-dach.spec.ts (y futuros staging-*.spec.ts).
+      testMatch: 'regression/staging-*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
         httpCredentials,
@@ -128,7 +129,7 @@ export default defineConfig({
     },
     {
       name: 'regression-staging-webkit',
-      testMatch: 'regression/staging-e2e.spec.ts',
+      testMatch: 'regression/staging-*.spec.ts',
       use: {
         ...devices['Desktop Safari'],
         httpCredentials,
@@ -136,14 +137,14 @@ export default defineConfig({
     },
     {
       name: 'regression-prod',
-      testMatch: 'regression/production-e2e.spec.ts',
+      testMatch: 'regression/production-*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
       },
     },
     {
       name: 'regression-prod-webkit',
-      testMatch: 'regression/production-e2e.spec.ts',
+      testMatch: 'regression/production-*.spec.ts',
       use: {
         ...devices['Desktop Safari'],
       },
