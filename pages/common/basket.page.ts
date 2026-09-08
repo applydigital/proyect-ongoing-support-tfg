@@ -13,7 +13,11 @@ export class BasketPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.productLineItems = page.locator('.product-summary, .cart-page .product-info, .line-item-name');
+    this.productLineItems = page.locator(
+      '.product-summary, .cart-page .product-info, .line-item-name, ' +
+      '.product-line-item, .line-item-header, .cart-item, ' +
+      '.ge-cart-item, .globale-cart-item, [class*="line-item"]'
+    );
     this.checkoutButton = page.locator(
       'button:has-text("Checkout Securely"), a:has-text("Checkout Securely"), ' +
       'a.checkout-btn, button.checkout-btn, .btn-checkout'
@@ -22,7 +26,9 @@ export class BasketPage extends BasePage {
 
   /** Espera a que la cesta cargue con al menos un producto. */
   async waitForLoaded(): Promise<void> {
-    await this.productLineItems.first().waitFor({ state: 'visible', timeout: 15000 });
+    // Eliminar overlays de Globale que puedan bloquear la visibilidad de los artículos.
+    await this.dismissModalsIfPresent();
+    await this.productLineItems.first().waitFor({ state: 'visible', timeout: 30000 });
   }
 
   /** Devuelve true si la cesta tiene al menos un artículo. */

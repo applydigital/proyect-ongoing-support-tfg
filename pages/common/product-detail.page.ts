@@ -66,7 +66,21 @@ export class ProductDetailPage extends BasePage {
     await this.addToCartButton.waitFor({ state: 'visible', timeout: 30000 });
     await this.addToCartButton.click({ force: true });
 
-    // Después del click aparece un minicart con el enlace "View Bag And Checkout"
+    // Esperar a que la petición AJAX de añadir al carrito complete, luego
+    // eliminar el popup de Globale del DOM para que el minicart sea accesible.
+    await this.page.waitForTimeout(2500);
+    await this.page.evaluate(() => {
+      document.getElementById('globalePopupWrapper')?.remove();
+      document.getElementById('globale_overlay')?.remove();
+      document.querySelectorAll('[class*="globale_overlay"], [class*="globale-overlay"]').forEach(el => el.remove());
+      document.querySelectorAll('[id^="bx-campaign-"], .bx-type-overlay').forEach(el => el.remove());
+    }).catch(() => {});
+
+    // Después del click aparece un minicart con el enlace "View Bag And Checkout".
+    // El href de este enlace apunta a la cesta correcta (SFCC /bag o la cesta
+    // cross-border de Globale según la sesión). Seguirlo es más fiable que
+    // navegar directamente a /bag (que puede estar vacío si Globale creó una
+    // cesta internacional separada).
     const viewBagLink = this.page.getByRole('link', { name: /view bag and checkout/i });
     try {
       await viewBagLink.waitFor({ state: 'visible', timeout: 10000 });
@@ -79,8 +93,6 @@ export class ProductDetailPage extends BasePage {
       const knownRegions = ['au', 'us', 'eu', 'row', 'de'];
       const regionPrefix = knownRegions.includes(firstSegment) ? `/${firstSegment}` : '';
       const origin = currentUrl.origin;
-      // Intentar /bag primero (Hobbs); si devuelve 404 SFCC lanza un 200 con página de error,
-      // así que simplemente vamos a /bag — BasketPage.hasItems() verificará si hay artículos.
       await this.page.goto(`${origin}${regionPrefix}/bag`);
     }
 
