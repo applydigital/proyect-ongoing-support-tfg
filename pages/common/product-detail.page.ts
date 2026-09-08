@@ -25,7 +25,13 @@ export class ProductDetailPage extends BasePage {
       '.size-btn:not(.unselectable):not(.out-of-stock), ' +
       'button[data-attr="size"]:not([disabled])'
     );
-    this.addToCartButton = page.locator('button.add-to-cart:not([disabled])').first();
+    // Excluimos el estado "Select Size" — el botón existe y no está disabled,
+    // pero SFRA no lo activa hasta que la talla se registra por AJAX. Clickearlo
+    // en ese estado no hace nada. Con esta exclusión, waitFor(visible) espera
+    // efectivamente a que el add-to-cart quede realmente accionable.
+    this.addToCartButton = page.locator('button.add-to-cart:not([disabled])')
+      .filter({ hasNotText: /select size/i })
+      .first();
     // Tras añadir al carrito aparece un mini-cart con enlace a la cesta
     this.minicartGoToCart = page.locator('.minicart .go-to-cart, .mini-cart .view-cart, a[href*="/cart"]').first();
     this.addToCartConfirmation = page.locator('.add-to-cart-messages, .cart-and-ipay').first();
