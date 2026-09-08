@@ -57,19 +57,32 @@ export class BasePage {
    * No falla si ninguno aparece.
    */
   async dismissModalsIfPresent(): Promise<void> {
+    // Globale cross-border popup — intercepta pointer events en toda la página cuando
+    // detecta una IP no-UK. Lo ocultamos con JS; usuarios UK nunca lo ven.
+    try {
+      await this.page.evaluate(() => {
+        const globale = document.getElementById('globalePopupWrapper');
+        if (globale) (globale as HTMLElement).style.display = 'none';
+        // También limpiar cualquier overlay de fondo que bloquee clicks
+        document.querySelectorAll('[class*="globale"]').forEach(el => {
+          (el as HTMLElement).style.display = 'none';
+        });
+      });
+    } catch { /* no presente */ }
+
     // Welcome mat "ENJOY X% OFF" — botón DECLINE OFFER
     try {
       const declineBtn = this.page.getByRole('button', { name: /decline offer/i });
-      if (await declineBtn.isVisible({ timeout: 8000 })) {
+      if (await declineBtn.isVisible({ timeout: 5000 })) {
         await declineBtn.click();
       }
     } catch { /* modal no presente */ }
 
-    // Selector de país/región — botón CANCELAR o CANCEL
+    // Selector de país/región — detectamos por CANCELAR/CANCEL pero cerramos con Escape
     try {
-      const cancelBtn = this.page.getByRole('button', { name: /cancel/i });
-      if (await cancelBtn.isVisible({ timeout: 3000 })) {
-        await cancelBtn.click();
+      const cancelEl = this.page.locator('button, a, [role="button"]').filter({ hasText: /^cancel(ar)?$/i }).first();
+      if (await cancelEl.isVisible({ timeout: 3000 })) {
+        await this.page.keyboard.press('Escape');
       }
     } catch { /* modal no presente */ }
   }

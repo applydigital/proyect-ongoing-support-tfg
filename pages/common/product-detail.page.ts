@@ -33,20 +33,27 @@ export class ProductDetailPage extends BasePage {
     await this.addToCartButton.waitFor({ state: 'visible', timeout: 30000 });
   }
 
-  /** Selecciona la primera talla disponible. */
+  /** Selecciona la primera talla disponible. Si el producto no tiene tallas (ej: hogar, talla única) lo omite. */
   async selectFirstAvailableSize(): Promise<void> {
+    await this.dismissModalsIfPresent();
     const firstSize = this.sizeButtons.first();
-    await firstSize.waitFor({ state: 'visible', timeout: 10000 });
-    await firstSize.click();
+    try {
+      await firstSize.waitFor({ state: 'visible', timeout: 5000 });
+      await firstSize.click();
+    } catch {
+      // Sin selector de talla (producto de talla única o artículo de hogar) — no es necesario
+    }
   }
 
   /** Añade el producto al carrito y navega a la cesta. */
   async addToCartAndGoToBasket(): Promise<BasketPage> {
+    await this.dismissModalsIfPresent();
     await this.addToCartButton.waitFor({ state: 'visible' });
     await this.addToCartButton.click();
 
-    // Navegar directamente al carrito es más estable que esperar el mini-cart
-    await this.page.goto('/cart');
+    // Navegar directamente al carrito usando URL absoluta (regression no tiene baseURL configurado)
+    const cartUrl = new URL('/cart', this.page.url()).toString();
+    await this.page.goto(cartUrl);
     return new BasketPage(this.page);
   }
 }

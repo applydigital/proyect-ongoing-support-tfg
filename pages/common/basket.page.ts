@@ -30,6 +30,7 @@ export class BasketPage extends BasePage {
 
   /** Pulsa el botón de checkout y devuelve la página de checkout. */
   async proceedToCheckout(): Promise<CheckoutPage> {
+    await this.dismissModalsIfPresent();
     await this.checkoutButton.waitFor({ state: 'visible' });
     await this.checkoutButton.click();
     return new CheckoutPage(this.page);
