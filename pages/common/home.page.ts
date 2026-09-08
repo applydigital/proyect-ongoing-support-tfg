@@ -34,7 +34,6 @@ export class HomePage extends BasePage {
    * Devuelve el Page Object de la página de resultados.
    */
   async search(term: string): Promise<SearchResultsPage> {
-    await this.dismissModalsIfPresent();
     await this.searchBox.waitFor({ state: 'visible' });
     await this.searchBox.click();
     await this.searchBox.fill(term);

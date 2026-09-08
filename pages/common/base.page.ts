@@ -79,12 +79,17 @@ export class BasePage {
             }
           }
         }
-        // Botón GUARDAR — el texto está en español porque el popup detecta IP Argentina
+        // Botón GUARDAR — texto en español porque el popup detecta IP Argentina
         const saveBtn = globalePopup.locator('button').filter({ hasText: /guardar|save/i }).first();
         if (await saveBtn.isVisible({ timeout: 3000 })) {
+          // Iniciar escucha de navegación ANTES del click — patrón correcto de Playwright
+          // para no perder el evento si el reload arranca de forma síncrona con el click
+          const waitNav = this.page.waitForNavigation({
+            waitUntil: 'domcontentloaded',
+            timeout: 10000,
+          }).catch(() => null);
           await saveBtn.click();
-          // GUARDAR puede causar un page reload completo — esperamos a que estabilice
-          await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 }).catch(() => {});
+          await waitNav; // null si Globale no hizo reload; si lo hizo, esperamos domcontentloaded
           globaleWasSaved = true;
         }
         await globalePopup.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
