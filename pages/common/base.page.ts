@@ -57,42 +57,48 @@ export class BasePage {
    * No falla si ninguno aparece.
    */
   async dismissModalsIfPresent(): Promise<void> {
+    let globaleWasSaved = false;
+
     // ── 1. Globale country selector ──────────────────────────────────────────
-    // Desde IPs no-UK aparece un popup "¿A QUÉ PAÍS QUIERES QUE SE ENVÍE EL PEDIDO?"
-    // con un dropdown de países y un botón GUARDAR.
-    // Solo cerrar con × / CANCELAR NO guarda cookie → el popup vuelve a aparecer.
-    // Seleccionamos United Kingdom y hacemos click en GUARDAR para que Globale
-    // setee su cookie y enrute el tráfico como UK → el carrito SFCC funciona normal.
+    // Desde IPs no-UK aparece "¿A QUÉ PAÍS QUIERES QUE SE ENVÍE EL PEDIDO?"
+    // Hay que seleccionar United Kingdom y hacer click en GUARDAR — solo
+    // cerrar con × / CANCELAR no guarda cookie y el popup vuelve a aparecer.
     try {
       const globalePopup = this.page.locator('#globalePopupWrapper');
       if (await globalePopup.isVisible({ timeout: 5000 })) {
         const countrySelect = globalePopup.locator('select').first();
         if (await countrySelect.isVisible({ timeout: 3000 })) {
-          // Seleccionar United Kingdom via JS para mayor compatibilidad
-          await countrySelect.evaluate((select: HTMLSelectElement) => {
-            const ukOption = Array.from(select.options).find(
-              opt => opt.text.toUpperCase().includes('UNITED KINGDOM') || opt.value === 'GB'
-            );
-            if (ukOption) {
-              select.value = ukOption.value;
-              select.dispatchEvent(new Event('change', { bubbles: true }));
+          // Intentar selectOption por valor ISO (GB) y por label como fallback
+          try {
+            await countrySelect.selectOption('GB');
+          } catch {
+            try {
+              await countrySelect.selectOption({ label: 'United Kingdom' });
+            } catch {
+              await countrySelect.selectOption({ label: 'UNITED KINGDOM' });
             }
-          });
+          }
         }
-        // Click en GUARDAR / SAVE para confirmar
+        // Botón GUARDAR — el texto está en español porque el popup detecta IP Argentina
         const saveBtn = globalePopup.locator('button').filter({ hasText: /guardar|save/i }).first();
         if (await saveBtn.isVisible({ timeout: 3000 })) {
           await saveBtn.click();
-          await globalePopup.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
+          // GUARDAR puede causar un page reload completo — esperamos a que estabilice
+          await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 }).catch(() => {});
+          globaleWasSaved = true;
         }
+        await globalePopup.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
       }
     } catch { /* popup no presente */ }
 
     // ── 2. Welcome mat "ENJOY X% OFF" ───────────────────────────────────────
-    // Aparece después del Globale popup. Botón DECLINE OFFER lo cierra.
+    // Aparece después del Globale popup (o independiente en nueva sesión).
+    // Si acabamos de hacer GUARDAR, damos más tiempo porque el popup
+    // se renderiza después del reload.
     try {
       const declineBtn = this.page.getByRole('button', { name: /decline offer/i });
-      if (await declineBtn.isVisible({ timeout: 5000 })) {
+      const waitMs = globaleWasSaved ? 8000 : 5000;
+      if (await declineBtn.isVisible({ timeout: waitMs })) {
         await declineBtn.click();
       }
     } catch { /* modal no presente */ }
