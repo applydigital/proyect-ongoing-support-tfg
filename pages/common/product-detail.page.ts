@@ -63,7 +63,8 @@ export class ProductDetailPage extends BasePage {
     await this.addToCartButton.waitFor({ state: 'visible', timeout: 30000 });
     await this.dismissModalsIfPresent();
     await this.addToCartButton.scrollIntoViewIfNeeded();
-    await this.addToCartButton.click();
+    // force:true bypasea el check de pointer-events del Globale popup (solo aparece por IP no-UK)
+    await this.addToCartButton.click({ force: true });
 
     // Navegar directamente al carrito usando URL absoluta (regression no tiene baseURL configurado)
     const cartUrl = new URL('/cart', this.page.url()).toString();
