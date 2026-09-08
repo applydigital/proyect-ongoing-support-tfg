@@ -30,6 +30,7 @@ export class ProductDetailPage extends BasePage {
    */
   async waitForLoaded(): Promise<void> {
     await this.page.waitForLoadState('domcontentloaded');
+    await this.dismissModalsIfPresent();
     await this.addToCartButton.waitFor({ state: 'visible', timeout: 30000 });
   }
 
