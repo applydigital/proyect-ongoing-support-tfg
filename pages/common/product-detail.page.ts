@@ -47,14 +47,14 @@ export class ProductDetailPage extends BasePage {
   /**
    * Selecciona la primera talla disponible.
    * Si el producto no tiene tallas (home goods, talla única) lo omite sin fallar.
+   * Usa force:true para evitar que el Globale overlay bloquee el click sin modificar el DOM.
    */
   async selectFirstAvailableSize(): Promise<void> {
-    await this.dismissModalsIfPresent();
     const firstSize = this.sizeButtons.first();
     try {
       await firstSize.waitFor({ state: 'visible', timeout: 30000 });
-      await this.dismissModalsIfPresent();
-      await firstSize.click();
+      // force:true bypasa el Globale overlay sin llamar dismissModals (que causaría stale del botón ATC)
+      await firstSize.click({ force: true });
     } catch {
       // Sin selector de talla (producto de talla única o artículo de hogar) — no es necesario
     }
@@ -63,8 +63,9 @@ export class ProductDetailPage extends BasePage {
   /** Añade el producto al carrito y navega a la cesta. */
   async addToCartAndGoToBasket(): Promise<BasketPage> {
     await this.addToCartButton.waitFor({ state: 'visible', timeout: 30000 });
-    await this.dismissModalsIfPresent();
-    // force:true bypasa pointer-events (Globale popup) y evita necesidad de scrollIntoView
+    // NO llamamos dismissModalsIfPresent aquí: ocultar el overlay Globale con JS
+    // cambia el DOM y hace que el locator pierda la referencia al botón (stale element).
+    // force:true bypasa el pointer-events del overlay sin modificar el DOM.
     await this.addToCartButton.click({ force: true });
 
     // Preservar el prefijo de región en la URL del carrito (/au/cart, /us/cart, etc.)
