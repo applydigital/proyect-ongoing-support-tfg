@@ -72,12 +72,16 @@ export class ProductDetailPage extends BasePage {
       await viewBagLink.waitFor({ state: 'visible', timeout: 10000 });
       await viewBagLink.click();
     } catch {
-      // Fallback: si el minicart no aparece, navegar directamente preservando el prefijo de región
+      // Fallback: si el minicart no aparece, navegar directamente.
+      // Hobbs usa /bag, Phase Eight / Inside Story pueden usar /cart.
       const currentUrl = new URL(this.page.url());
       const firstSegment = currentUrl.pathname.split('/')[1];
       const knownRegions = ['au', 'us', 'eu', 'row', 'de'];
       const regionPrefix = knownRegions.includes(firstSegment) ? `/${firstSegment}` : '';
-      await this.page.goto(`${currentUrl.origin}${regionPrefix}/cart`);
+      const origin = currentUrl.origin;
+      // Intentar /bag primero (Hobbs); si devuelve 404 SFCC lanza un 200 con página de error,
+      // así que simplemente vamos a /bag — BasketPage.hasItems() verificará si hay artículos.
+      await this.page.goto(`${origin}${regionPrefix}/bag`);
     }
 
     await this.page.waitForLoadState('domcontentloaded');

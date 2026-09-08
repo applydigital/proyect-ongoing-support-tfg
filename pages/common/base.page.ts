@@ -57,20 +57,39 @@ export class BasePage {
    * No falla si ninguno aparece.
    */
   async dismissModalsIfPresent(): Promise<void> {
-    // Globale cross-border popup — intercepta pointer events en toda la página cuando
-    // detecta una IP no-UK. Lo ocultamos con JS; usuarios UK nunca lo ven.
+    // ── 1. Globale country selector ──────────────────────────────────────────
+    // Desde IPs no-UK aparece un popup "¿A QUÉ PAÍS QUIERES QUE SE ENVÍE EL PEDIDO?"
+    // con un dropdown de países y un botón GUARDAR.
+    // Solo cerrar con × / CANCELAR NO guarda cookie → el popup vuelve a aparecer.
+    // Seleccionamos United Kingdom y hacemos click en GUARDAR para que Globale
+    // setee su cookie y enrute el tráfico como UK → el carrito SFCC funciona normal.
     try {
-      await this.page.evaluate(() => {
-        const globale = document.getElementById('globalePopupWrapper');
-        if (globale) (globale as HTMLElement).style.display = 'none';
-        // También limpiar cualquier overlay de fondo que bloquee clicks
-        document.querySelectorAll('[class*="globale"]').forEach(el => {
-          (el as HTMLElement).style.display = 'none';
-        });
-      });
-    } catch { /* no presente */ }
+      const globalePopup = this.page.locator('#globalePopupWrapper');
+      if (await globalePopup.isVisible({ timeout: 5000 })) {
+        const countrySelect = globalePopup.locator('select').first();
+        if (await countrySelect.isVisible({ timeout: 3000 })) {
+          // Seleccionar United Kingdom via JS para mayor compatibilidad
+          await countrySelect.evaluate((select: HTMLSelectElement) => {
+            const ukOption = Array.from(select.options).find(
+              opt => opt.text.toUpperCase().includes('UNITED KINGDOM') || opt.value === 'GB'
+            );
+            if (ukOption) {
+              select.value = ukOption.value;
+              select.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+          });
+        }
+        // Click en GUARDAR / SAVE para confirmar
+        const saveBtn = globalePopup.locator('button').filter({ hasText: /guardar|save/i }).first();
+        if (await saveBtn.isVisible({ timeout: 3000 })) {
+          await saveBtn.click();
+          await globalePopup.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
+        }
+      }
+    } catch { /* popup no presente */ }
 
-    // Welcome mat "ENJOY X% OFF" — botón DECLINE OFFER
+    // ── 2. Welcome mat "ENJOY X% OFF" ───────────────────────────────────────
+    // Aparece después del Globale popup. Botón DECLINE OFFER lo cierra.
     try {
       const declineBtn = this.page.getByRole('button', { name: /decline offer/i });
       if (await declineBtn.isVisible({ timeout: 5000 })) {
@@ -78,35 +97,7 @@ export class BasePage {
       }
     } catch { /* modal no presente */ }
 
-    // Selector de país/región — detectamos por CANCELAR/CANCEL pero cerramos con Escape
-    try {
-      const cancelEl = this.page.locator('button, a, [role="button"]').filter({ hasText: /^cancel(ar)?$/i }).first();
-      if (await cancelEl.isVisible({ timeout: 3000 })) {
-        await this.page.keyboard.press('Escape');
-      }
-    } catch { /* modal no presente */ }
-
-    // Global-e regional popup (aparece en rutas internacionales /au/, /eu/, /row/, /de/)
-    // — intercepta pointer events y bloquea clicks en tiles hasta que se cierra.
-    try {
-      const globalePopup = this.page.locator('#globalePopupWrapper');
-      if (await globalePopup.isVisible({ timeout: 5000 })) {
-        const closeBtn = globalePopup.locator(
-          'button.close, .globale_popup_close, [aria-label*="close" i]'
-        ).first();
-        if (await closeBtn.isVisible({ timeout: 2000 })) {
-          await closeBtn.click();
-        } else {
-          // Fallback: si no encontramos botón conocido, escondemos el wrapper para no bloquear
-          await globalePopup.evaluate(el => el.remove());
-        }
-        await globalePopup.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
-      }
-    } catch { /* modal no presente */ }
-
-    // Global-e overlay (backdrop distinto al popup; aparece al llegar al PDP en
-    // rutas internacionales y bloquea clicks silenciosamente, sin botón de cierre).
-    // Lo removemos directamente porque no tiene UI de cierre confiable.
+    // ── 3. Overlay residual de Globale ───────────────────────────────────────
     try {
       const globaleOverlay = this.page.locator('#globale_overlay, .globale_overlay').first();
       if (await globaleOverlay.isVisible({ timeout: 2000 })) {
