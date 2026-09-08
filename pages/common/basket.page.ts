@@ -14,7 +14,10 @@ export class BasketPage extends BasePage {
   constructor(page: Page) {
     super(page);
     this.productLineItems = page.locator('.product-summary, .cart-page .product-info, .line-item-name');
-    this.checkoutButton = page.locator('a.checkout-btn, button.checkout-btn, .btn-checkout').first();
+    this.checkoutButton = page.locator(
+      'button:has-text("Checkout Securely"), a:has-text("Checkout Securely"), ' +
+      'a.checkout-btn, button.checkout-btn, .btn-checkout'
+    ).first();
   }
 
   /** Espera a que la cesta cargue con al menos un producto. */

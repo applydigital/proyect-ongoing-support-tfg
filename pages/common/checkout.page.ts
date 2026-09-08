@@ -33,51 +33,84 @@ export class CheckoutPage extends BasePage {
     super(page);
   }
 
-  /** Paso 1: Click en "CONTINUE AS GUEST" en la pantalla de login. */
-  async continueAsGuest(_email: string): Promise<void> {
-    const guestLink = this.page.getByRole('link', { name: /continue as guest/i });
-    await guestLink.waitFor({ state: 'visible', timeout: 15000 });
-    await guestLink.click();
+  /** Paso 1: Rellena el email y pulsa "Continue as guest". */
+  async continueAsGuest(email: string): Promise<void> {
+    // Rellenar email (visible antes de elegir guest)
+    try {
+      const emailField = this.page.getByRole('textbox', { name: /email/i }).first();
+      await emailField.waitFor({ state: 'visible', timeout: 10000 });
+      await emailField.fill(email);
+    } catch { /* campo no presente en esta pantalla */ }
+
+    // "Continue as guest" puede ser un <a>, un <button> o texto clicable
+    const guestEl = this.page.getByText(/continue as guest/i).first();
+    await guestEl.waitFor({ state: 'visible', timeout: 15000 });
+    await guestEl.click();
     await this.page.waitForLoadState('domcontentloaded');
   }
 
-  /** Paso 2: Rellena la dirección de envío usando el formulario manual. */
+  /** Paso 2: Rellena la dirección de envío. */
   async fillShippingAddress(address: ShippingAddress): Promise<void> {
-    // Abre el formulario manual (en lugar del postcode lookup)
+    // Hobbs usa un campo de búsqueda por postcode/dirección
+    const postcodeLookup = this.page.getByRole('textbox', {
+      name: /first line of address.*postcode|postcode.*address|postcode/i,
+    }).first();
+
+    if (await postcodeLookup.isVisible({ timeout: 5000 }).catch(() => false)) {
+      // Flujo real: escribir el postcode y seleccionar la primera sugerencia
+      await postcodeLookup.fill(address.postcode);
+      const firstSuggestion = this.page.locator(
+        '[class*="suggestion"]:visible, [class*="autocomplete-item"]:visible, ' +
+        '.loqate-suggestion:visible, li[role="option"]:visible'
+      ).first();
+      try {
+        await firstSuggestion.waitFor({ state: 'visible', timeout: 8000 });
+        await firstSuggestion.click();
+        // Si hay un segundo nivel (grupo de direcciones → dirección específica), tomar la primera
+        const secondLevel = this.page.locator(
+          '[class*="suggestion"]:visible, [class*="autocomplete-item"]:visible, ' +
+          '.loqate-suggestion:visible, li[role="option"]:visible'
+        ).first();
+        if (await secondLevel.isVisible({ timeout: 3000 }).catch(() => false)) {
+          await secondLevel.click();
+        }
+      } catch { /* sugerencias no aparecieron — pasar al formulario manual */ }
+    }
+
+    // Formulario manual — fallback o alternativa si el lookup no completó los campos
     const enterManually = this.page.getByRole('link', { name: /enter address manually/i });
-    await enterManually.waitFor({ state: 'visible', timeout: 15000 });
-    await enterManually.click();
-
-    // Nombre y apellido
-    await this.page.locator('#shippingFirstNamedefault, input[name="firstName"]').first()
-      .waitFor({ state: 'visible', timeout: 10000 });
-    await this.page.locator('#shippingFirstNamedefault, input[name="firstName"]').first()
-      .fill(address.firstName);
-    await this.page.locator('#shippingLastNamedefault, input[name="lastName"]').first()
-      .fill(address.lastName);
-
-    // Teléfono
-    const phoneField = this.page.locator('input[name="phone"], input[name="mobileNumber"], #phone').first();
-    if (await phoneField.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await phoneField.fill(address.phone);
+    if (await enterManually.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await enterManually.click();
     }
 
-    // Dirección
-    await this.page.locator('#shippingAddressOnedefault, input[name="address1"]').first()
-      .fill(address.address1);
-    if (address.address2) {
-      const addr2 = this.page.locator('#shippingAddressTwodefault, input[name="address2"]').first();
-      if (await addr2.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await addr2.fill(address.address2);
+    // Rellenar campos del formulario si están visibles
+    const firstNameField = this.page.locator('#shippingFirstNamedefault, input[name="firstName"]').first();
+    if (await firstNameField.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await firstNameField.fill(address.firstName);
+      await this.page.locator('#shippingLastNamedefault, input[name="lastName"]').first()
+        .fill(address.lastName);
+
+      const phoneField = this.page.locator('input[name="phone"], input[name="mobileNumber"], #phone').first();
+      if (await phoneField.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await phoneField.fill(address.phone);
       }
-    }
-    await this.page.locator('#shippingAddressCitydefault, input[name="city"]').first()
-      .fill(address.city);
-    await this.page.locator('#shippingZipCodedefault, input[name="postalCode"]').first()
-      .fill(address.postcode);
 
-    // Submit dirección
-    await this.page.locator('button.submit-shipping, button:has-text("CONTINUE")').first().click();
+      await this.page.locator('#shippingAddressOnedefault, input[name="address1"]').first()
+        .fill(address.address1);
+      if (address.address2) {
+        const addr2 = this.page.locator('#shippingAddressTwodefault, input[name="address2"]').first();
+        if (await addr2.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await addr2.fill(address.address2);
+        }
+      }
+      await this.page.locator('#shippingAddressCitydefault, input[name="city"]').first()
+        .fill(address.city);
+      await this.page.locator('#shippingZipCodedefault, input[name="postalCode"]').first()
+        .fill(address.postcode);
+    }
+
+    // Submit dirección — "CONTINUE" o variante según el sitio
+    await this.page.getByRole('button', { name: /^continue$/i }).first().click();
   }
 
   /** Paso 3: Confirma el método de envío (Standard ya viene seleccionado). */

@@ -64,19 +64,23 @@ export class ProductDetailPage extends BasePage {
   /** Añade el producto al carrito y navega a la cesta. */
   async addToCartAndGoToBasket(): Promise<BasketPage> {
     await this.addToCartButton.waitFor({ state: 'visible', timeout: 30000 });
-    // NO llamamos dismissModalsIfPresent aquí: ocultar el overlay Globale con JS
-    // cambia el DOM y hace que el locator pierda la referencia al botón (stale element).
-    // force:true bypasa el pointer-events del overlay sin modificar el DOM.
     await this.addToCartButton.click({ force: true });
 
-    // Preservar el prefijo de región en la URL del carrito (/au/cart, /us/cart, etc.)
-    // new URL('/cart', url) siempre genera /<origin>/cart ignorando el prefijo de región
-    const currentUrl = new URL(this.page.url());
-    const firstSegment = currentUrl.pathname.split('/')[1];
-    const knownRegions = ['au', 'us', 'eu', 'row', 'de'];
-    const regionPrefix = knownRegions.includes(firstSegment) ? `/${firstSegment}` : '';
-    const cartUrl = `${currentUrl.origin}${regionPrefix}/cart`;
-    await this.page.goto(cartUrl);
+    // Después del click aparece un minicart con el enlace "View Bag And Checkout"
+    const viewBagLink = this.page.getByRole('link', { name: /view bag and checkout/i });
+    try {
+      await viewBagLink.waitFor({ state: 'visible', timeout: 10000 });
+      await viewBagLink.click();
+    } catch {
+      // Fallback: si el minicart no aparece, navegar directamente preservando el prefijo de región
+      const currentUrl = new URL(this.page.url());
+      const firstSegment = currentUrl.pathname.split('/')[1];
+      const knownRegions = ['au', 'us', 'eu', 'row', 'de'];
+      const regionPrefix = knownRegions.includes(firstSegment) ? `/${firstSegment}` : '';
+      await this.page.goto(`${currentUrl.origin}${regionPrefix}/cart`);
+    }
+
+    await this.page.waitForLoadState('domcontentloaded');
     return new BasketPage(this.page);
   }
 }
