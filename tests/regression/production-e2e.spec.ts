@@ -1,7 +1,8 @@
 /**
  * Regression E2E — Production
  *
- * Cubre: Hobbs · Phase Eight · Inside Story × UK · AU · EU · ROW · DACH
+ * Cubre: Hobbs · Phase Eight · Inside Story × sus regiones disponibles
+ * (definidas en data/regression.data.ts, no todas las marcas tienen las mismas).
  *
  * Flujo:
  *   Home → búsqueda → PLP → PDP → añadir al carrito → checkout → PARA antes del pago
@@ -14,7 +15,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { regressionBrands, regions } from '@data/regression.data';
+import { regressionBrands } from '@data/regression.data';
 import { guestEmail, shippingAddress } from '@data/checkout.data';
 import { HomePage } from '@pages/common/home.page';
 import { SearchResultsPage } from '@pages/common/search-results.page';
@@ -23,7 +24,7 @@ import { BasketPage } from '@pages/common/basket.page';
 import { CheckoutPage } from '@pages/common/checkout.page';
 
 for (const brand of regressionBrands) {
-  for (const region of regions) {
+  for (const region of brand.regions) {
     const baseUrl = brand.prodUrl + (region.path === '/' ? '' : region.path.replace(/\/$/, ''));
 
     test.describe(`[${brand.name}] [${region.name}] Production regression`, () => {
@@ -32,6 +33,7 @@ for (const brand of regressionBrands) {
         await page.goto(baseUrl);
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
+        await home.dismissModalsIfPresent();
         await expect(page).toHaveTitle(brand.expectedTitlePattern);
       });
 
@@ -39,6 +41,7 @@ for (const brand of regressionBrands) {
         await page.goto(baseUrl);
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
+        await home.dismissModalsIfPresent();
         const results: SearchResultsPage = await home.search(brand.searchTerm);
         expect(await results.getProductCount()).toBeGreaterThan(0);
       });
@@ -47,7 +50,8 @@ for (const brand of regressionBrands) {
         await page.goto(baseUrl + brand.categoryPath);
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
-        const tiles = page.locator('.product-tile');
+        await home.dismissModalsIfPresent();
+        const tiles = page.locator('.product-tile:not([data-cnstrc-item])');
         await expect(tiles.first()).toBeVisible();
         expect(await tiles.count()).toBeGreaterThan(0);
       });
@@ -56,13 +60,14 @@ for (const brand of regressionBrands) {
         await page.goto(baseUrl);
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
+        await home.dismissModalsIfPresent();
 
         const results: SearchResultsPage = await home.search(brand.searchTerm);
-        await results.productTiles.first().locator('a').first().click();
-        await page.waitForLoadState('domcontentloaded');
+        await results.clickFirstProduct();
 
         const pdp = new ProductDetailPage(page);
         await pdp.acceptCookiesIfPresent();
+        await pdp.dismissModalsIfPresent();
         await pdp.selectFirstAvailableSize();
         const basket: BasketPage = await pdp.addToCartAndGoToBasket();
 
@@ -73,13 +78,14 @@ for (const brand of regressionBrands) {
         await page.goto(baseUrl);
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
+        await home.dismissModalsIfPresent();
 
         const results: SearchResultsPage = await home.search(brand.searchTerm);
-        await results.productTiles.first().locator('a').first().click();
-        await page.waitForLoadState('domcontentloaded');
+        await results.clickFirstProduct();
 
         const pdp = new ProductDetailPage(page);
         await pdp.acceptCookiesIfPresent();
+        await pdp.dismissModalsIfPresent();
         await pdp.selectFirstAvailableSize();
         const basket: BasketPage = await pdp.addToCartAndGoToBasket();
 
