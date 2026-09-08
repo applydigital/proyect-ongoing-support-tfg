@@ -6,7 +6,7 @@
  *   Phase Eight:  UK · AU · EU · ROW
  *   Inside Story: UK
  *
- * DACH (solo Phase Eight) se gestiona aparte en staging-dach / production-dach.
+ * DACH (solo Phase Eight) se gestiona aparte en staging-dach.
  */
 
 type Region = { name: string; path: string };

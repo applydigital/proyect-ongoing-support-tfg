@@ -16,12 +16,19 @@ jobs:
   sanity:
     name: Sanity — ${{ github.event.inputs.environment }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    environment: stage
+    timeout-minutes: 45
 
     env:
+      CI: true
       TARGET_ENV: ${{ github.event.inputs.environment }}
-      BASIC_AUTH_USER: ${{ secrets.BASIC_AUTH_USER }}
+      # Credentials for HTTP Basic Auth on staging
+      # playwright.config.ts reads BASIC_AUTH_USERNAME and BASIC_AUTH_PASSWORD
+      BASIC_AUTH_USERNAME: ${{ secrets.BASIC_AUTH_USER }}
       BASIC_AUTH_PASSWORD: ${{ secrets.BASIC_AUTH_PASSWORD }}
+      # NOTE: URL env vars intentionally omitted.
+      # sanity.data.ts uses ?? fallbacks (e.g. process.env.HOBBS_BASE_URL ?? 'https://stage.hobbs.com')
+      # Setting them to empty string here would break the fallback — only add if real secrets exist.
 
     steps:
       - uses: actions/checkout@v4
@@ -37,13 +44,30 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox webkit
 
+      - name: Verify environment
+        run: |
+          node --version
+          npx playwright --version
+          echo "TARGET_ENV: $TARGET_ENV"
+          node -e "console.log('BASIC_AUTH_USERNAME length:', (process.env.BASIC_AUTH_USERNAME||'').length)"
+          node -e "console.log('BASIC_AUTH_PASSWORD length:', (process.env.BASIC_AUTH_PASSWORD||'').length)"
+          node -e "console.log('HOBBS_BASE_URL:', process.env.HOBBS_BASE_URL || '(undefined — fallback will be used)')"
+
       - name: Run sanity suite
-        run: npm run test:sanity
+        run: npx playwright test --project=sanity-chrome --project=sanity-firefox --project=sanity-safari
 
       - name: Upload HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: sanity-report-${{ github.event.inputs.environment }}-${{ github.run_number }}
-          path: reports/
+          path: reports/html/
           retention-days: 14
+
+      - name: Upload failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sanity-traces-${{ github.event.inputs.environment }}-${{ github.run_number }}
+          path: test-results/
+          retention-days: 7

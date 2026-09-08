@@ -13,7 +13,8 @@ export class SearchResultsPage extends BasePage {
   constructor(page: Page) {
     super(page);
     this.grid = page.locator('.product-grid').first();
-    // Excluye tiles de Constructor.io (recomendaciones ocultas en el DOM)
+    // Excluye tiles de recomendaciones de Constructor.io (`data-cnstrc-item`),
+    // que están ocultos hasta hacer scroll y confunden a `.first()`.
     this.productTiles = page.locator('.product-tile:not([data-cnstrc-item])');
     this.resultCount = page.locator('.filters__result-count').first();
   }
@@ -30,7 +31,11 @@ export class SearchResultsPage extends BasePage {
     return (await this.resultCount.textContent())?.trim() ?? '';
   }
 
-  /** Navega al primer producto via href para evitar el hover effect del tile. */
+  /**
+   * Navega al primer producto de la lista. En vez de clickear el link
+   * (puede quedar interceptado por hover/carousel o por el popup de Global-e),
+   * leemos el href y navegamos directamente.
+   */
   async clickFirstProduct(): Promise<ProductDetailPage> {
     await this.dismissModalsIfPresent();
     const href = await this.productTiles.first().locator('a').first().getAttribute('href');

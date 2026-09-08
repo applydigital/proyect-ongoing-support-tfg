@@ -1,7 +1,8 @@
 /**
  * Regression E2E — Staging
  *
- * Hobbs (UK · AU · US · ROW) · Phase Eight (UK · AU · EU · ROW) · Inside Story (UK)
+ * Cubre: Hobbs · Phase Eight · Inside Story × sus regiones disponibles
+ * (definidas en data/regression.data.ts, no todas las marcas tienen las mismas).
  *
  * Flujo completo:
  *   Home → búsqueda → PDP → añadir al carrito → checkout → pago Adyen
