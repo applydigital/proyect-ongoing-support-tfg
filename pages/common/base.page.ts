@@ -90,5 +90,15 @@ export class BasePage {
         await globalePopup.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
       }
     } catch { /* modal no presente */ }
+
+    // Global-e overlay (backdrop distinto al popup; aparece al llegar al PDP en
+    // rutas internacionales y bloquea clicks silenciosamente, sin botón de cierre).
+    // Lo removemos directamente porque no tiene UI de cierre confiable.
+    try {
+      const globaleOverlay = this.page.locator('#globale_overlay, .globale_overlay').first();
+      if (await globaleOverlay.isVisible({ timeout: 2000 })) {
+        await globaleOverlay.evaluate(el => el.remove());
+      }
+    } catch { /* overlay no presente */ }
   }
 }

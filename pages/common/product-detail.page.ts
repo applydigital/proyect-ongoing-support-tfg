@@ -44,10 +44,13 @@ export class ProductDetailPage extends BasePage {
    * Selecciona la primera talla disponible.
    * Timeout de 30s (alineado con actionTimeout global): las capsules
    * pueden inyectarse dinámicamente tras el load inicial del PDP.
+   * Además re-cierra modales justo antes del click porque Global-e
+   * a veces inyecta un overlay async después de renderizar el PDP.
    */
   async selectFirstAvailableSize(): Promise<void> {
     const firstSize = this.sizeButtons.first();
     await firstSize.waitFor({ state: 'visible', timeout: 30000 });
+    await this.dismissModalsIfPresent();
     await firstSize.click();
   }
 
