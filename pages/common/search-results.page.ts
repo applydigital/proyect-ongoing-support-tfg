@@ -20,6 +20,7 @@ export class SearchResultsPage extends BasePage {
   }
 
   async waitForLoaded(): Promise<void> {
+    await this.dismissModalsIfPresent();
     await this.productTiles.first().waitFor({ state: 'visible' });
   }
 
