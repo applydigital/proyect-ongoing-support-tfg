@@ -13,6 +13,7 @@ on:
           - regression-staging
           - regression-staging-dach
           - regression-prod
+          - regression-prod-uk
           - regression-prod-dach
 
 jobs:
@@ -47,6 +48,7 @@ jobs:
             regression-staging)      npm run test:regression:staging ;;
             regression-staging-dach) npm run test:regression:staging:dach ;;
             regression-prod)         npm run test:regression:prod ;;
+            regression-prod-uk)      npm run test:regression:prod:uk ;;
             regression-prod-dach)    npm run test:regression:prod:dach ;;
           esac
 

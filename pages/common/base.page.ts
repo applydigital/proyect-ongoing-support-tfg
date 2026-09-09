@@ -92,18 +92,28 @@ export class BasePage {
           }
         } catch { /* moneda no presente o ya actualizada */ }
 
-        // ── 1c. Botón GUARDAR ────────────────────────────────────────────────
-        // Texto en español porque el popup detecta IP de Argentina.
-        // Iniciar escucha de navegación ANTES del click.
-        const saveBtn = globalePopup.locator('button, a, [role="button"], [type="submit"]').filter({ hasText: /guardar|save/i }).first();
-        if (await saveBtn.isVisible({ timeout: 5000 })) {
-          const waitNav = this.page.waitForNavigation({
-            waitUntil: 'domcontentloaded',
-            timeout: 12000,
-          }).catch(() => null);
+        // ── 1c. Intentar GUARDAR (guarda preferencia UK en Globale server-side).
+        // GUARDAR hace una API call a Globale que activa el routing UK para
+        // esta sesión — sin esto, Globale sigue routing ATC a Argentina.
+        // Si GUARDAR no existe o falla, hacer CANCELAR como fallback.
+        const saveBtn = globalePopup
+          .locator('a, button, input[type="submit"]')
+          .filter({ hasText: /guardar|save|apply|done|continuar/i })
+          .filter({ hasNotText: /globale|global-e|cross|internacional|internacion/i })
+          .first();
+        const saveBtnVisible = await saveBtn.isVisible({ timeout: 3000 }).catch(() => false);
+        if (saveBtnVisible) {
           await saveBtn.click();
-          await waitNav;
           globaleWasSaved = true;
+          // GUARDAR puede causar un page reload — esperar a que la página estabilice
+          await this.page.waitForLoadState('domcontentloaded').catch(() => {});
+          await this.page.waitForTimeout(1500);
+        } else {
+          // Fallback: CANCELAR si GUARDAR no aparece
+          const cancelBtn = globalePopup.locator('a, button').filter({ hasText: /cancelar|cancel/i }).first();
+          if (await cancelBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+            await cancelBtn.click();
+          }
         }
         await globalePopup.waitFor({ state: 'hidden', timeout: 8000 }).catch(() => {});
       }
