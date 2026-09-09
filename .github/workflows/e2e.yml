@@ -1,0 +1,69 @@
+name: E2E Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Which suite to run'
+        required: true
+        default: 'sanity'
+        type: choice
+        options:
+          - sanity
+          - regression-staging
+          - regression-staging-dach
+          - regression-prod
+          - regression-prod-uk
+          - regression-prod-dach
+
+jobs:
+  test:
+    name: Run ${{ github.event.inputs.suite }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    env:
+      TARGET_ENV: ${{ contains(github.event.inputs.suite, 'prod') && 'production' || 'staging' }}
+      BASIC_AUTH_USER: ${{ secrets.BASIC_AUTH_USER }}
+      BASIC_AUTH_PASSWORD: ${{ secrets.BASIC_AUTH_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run tests
+        run: |
+          case "${{ github.event.inputs.suite }}" in
+            sanity)                  npm run test:sanity ;;
+            regression-staging)      npm run test:regression:staging ;;
+            regression-staging-dach) npm run test:regression:staging:dach ;;
+            regression-prod)         npm run test:regression:prod ;;
+            regression-prod-uk)      npm run test:regression:prod:uk ;;
+            regression-prod-dach)    npm run test:regression:prod:dach ;;
+          esac
+
+      - name: Generate Slack summary
+        if: always()
+        run: npm run report:slack
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.event.inputs.suite }}-${{ github.run_number }}
+          path: reports/
+          retention-days: 14
+
+      - name: Print Slack summary
+        if: always()
+        run: cat reports/summary.txt || echo "No summary generated"

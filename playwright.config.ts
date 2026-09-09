@@ -37,10 +37,9 @@ export default defineConfig({
 
   // ─── Reportes ────────────────────────────────────────────────────────────────
   reporter: [
-    // Reporte HTML — abrir con: npm run report
     ['html', { outputFolder: 'reports/html', open: 'never' }],
-    // Muestra resultados en la terminal mientras corren los tests
     ['list'],
+    ['json', { outputFile: 'reports/results.json' }],
   ],
 
   // ─── Ajustes globales aplicados a TODOS los tests ────────────────────────────
@@ -141,6 +140,10 @@ export default defineConfig({
       testMatch: 'regression/production-*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
+        // Evita que Globale detecte Playwright como bot y bloquee el seteo de cookies.
+        launchOptions: {
+          args: ['--disable-blink-features=AutomationControlled'],
+        },
       },
     },
     {
