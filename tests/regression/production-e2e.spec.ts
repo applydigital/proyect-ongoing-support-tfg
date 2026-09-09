@@ -36,6 +36,23 @@ for (const brand of regressionBrands) {
 
     test.describe(`[${brand.name}] [${region.name}] Production regression`, () => {
 
+      // Inyectar la cookie de preferencia de país de Globale (UK) antes de cualquier
+      // navegación para que el popup "¿A qué país quieres enviar?" nunca aparezca.
+      // Globale lee esta cookie al cargar la página; si indica GB/GBP no muestra el selector.
+      test.beforeEach(async ({ page }) => {
+        const hostname = new URL(brand.prodUrl).hostname;
+        const globalePreference = JSON.stringify({
+          countryISO: 'GB',
+          currencyCode: 'GBP',
+          cultureCode: 'en-GB',
+          countryName: 'United Kingdom',
+        });
+        await page.context().addCookies([
+          { name: 'GlobalE_Data',         value: globalePreference, domain: `.${hostname}`, path: '/' },
+          { name: 'GlobalE_Welcome_Data', value: '1',               domain: `.${hostname}`, path: '/' },
+        ]);
+      });
+
       test('homepage loads with correct title', { tag: '@non-transactional' }, async ({ page }) => {
         await page.goto(baseUrl);
         const home = new HomePage(page);
