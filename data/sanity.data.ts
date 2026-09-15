@@ -56,11 +56,11 @@ export const sanitySiteData: BrandData[] = [
     ],
   },
   {
-    name: 'Inside Story',
-    stagingUrl: process.env.INSIDE_STORY_BASE_URL ?? 'https://stage.insidestory.com',
-    prodUrl: process.env.INSIDE_STORY_PROD_URL ?? 'https://www.insidestory.com',
-    searchTerm: 'table',
-    categoryPath: '/all-products/',
+    name: 'Whistles',
+    stagingUrl: process.env.WHISTLES_BASE_URL ?? 'https://stage.whistles.com',
+    prodUrl: process.env.WHISTLES_PROD_URL ?? 'https://www.whistles.com',
+    searchTerm: 'dress',
+    categoryPath: '/bags/',
     regions: [
       { name: 'UK', path: '/' },
     ],

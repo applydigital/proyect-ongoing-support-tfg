@@ -13,15 +13,31 @@ export class SearchResultsPage extends BasePage {
   constructor(page: Page) {
     super(page);
     this.grid = page.locator('.product-grid').first();
-    // Excluye tiles de recomendaciones de Constructor.io (`data-cnstrc-item`),
-    // que están ocultos hasta hacer scroll y confunden a `.first()`.
-    this.productTiles = page.locator('.product-tile:not([data-cnstrc-item])');
+    // Excluye tiles de recomendaciones de Constructor.io (`data-cnstrc-item`).
+    // Incluye también el markup de Whistles (wr-product-card / product-tile_wrapper).
+    this.productTiles = page.locator(
+      '.product-tile:not([data-cnstrc-item]), article[class*="wr-product-card"], [class*="product-tile_wrapper"]'
+    );
     this.resultCount = page.locator('.filters__result-count').first();
   }
 
   async waitForLoaded(): Promise<void> {
+    await this.page.waitForLoadState('domcontentloaded');
     await this.dismissModalsIfPresent();
-    await this.productTiles.first().waitFor({ state: 'visible' });
+    await this.page.waitForFunction(() => {
+      const selectors = [
+        '.product-tile:not([data-cnstrc-item])',
+        'article[class*="wr-product-card"]',
+        '[class*="product-tile_wrapper"]',
+      ];
+      for (const sel of selectors) {
+        for (const el of Array.from(document.querySelectorAll(sel))) {
+          const r = (el as HTMLElement).getBoundingClientRect();
+          if (r.width > 10 && r.height > 10) return true;
+        }
+      }
+      return false;
+    }, { timeout: 30000 });
   }
 
   async getProductCount(): Promise<number> {

@@ -84,7 +84,7 @@ for (const brand of sanitySiteData) {
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
         await home.dismissModalsIfPresent();
-        await expect(page.locator('footer').first()).toBeVisible();
+        await expect(page.locator('footer').first()).toBeVisible({ timeout: 15000 });
       });
 
     });

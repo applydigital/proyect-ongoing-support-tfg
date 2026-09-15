@@ -13,12 +13,32 @@ export class ProductListPage extends BasePage {
   constructor(page: Page) {
     super(page);
     // Excluye tiles de recomendaciones de Constructor.io (tienen data-cnstrc-item="recommendation")
-    this.productTiles = page.locator('.product-tile:not([data-cnstrc-item])');
+    // Incluye también el markup de Whistles (wr-product-card / product-tile_wrapper)
+    this.productTiles = page.locator(
+      '.product-tile:not([data-cnstrc-item]), article[class*="wr-product-card"], [class*="product-tile_wrapper"]'
+    );
   }
 
   /** Espera a que al menos un producto sea visible. */
   async waitForLoaded(): Promise<void> {
-    await this.productTiles.first().waitFor({ state: 'visible', timeout: 30000 });
+    await this.page.waitForLoadState('domcontentloaded');
+    await this.dismissModalsIfPresent();
+    // Usar waitForFunction para detectar tiles visibles por dimensiones reales,
+    // evitando falsos hidden en sitios con animaciones CSS (ej. Whistles).
+    await this.page.waitForFunction(() => {
+      const selectors = [
+        '.product-tile:not([data-cnstrc-item])',
+        'article[class*="wr-product-card"]',
+        '[class*="product-tile_wrapper"]',
+      ];
+      for (const sel of selectors) {
+        for (const el of Array.from(document.querySelectorAll(sel))) {
+          const r = (el as HTMLElement).getBoundingClientRect();
+          if (r.width > 10 && r.height > 10) return true;
+        }
+      }
+      return false;
+    }, { timeout: 30000 });
   }
 
   /** Número de productos visibles en el listado. */

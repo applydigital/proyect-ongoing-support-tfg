@@ -51,6 +51,16 @@ export class HomePage extends BasePage {
       if (await declineBtn.isVisible({ timeout: 2000 })) await declineBtn.click();
     } catch { /* modal no presente */ }
 
+    // Esperar a que la página esté lista (Globale puede causar un redirect tras CANCELAR)
+    await this.page.waitForLoadState('domcontentloaded').catch(() => {});
+
+    // Algunos sitios (Whistles) ocultan el searchbox hasta hacer click en el botón Search
+    try {
+      const searchTrigger = this.page.getByRole('button', { name: /^search$/i }).first();
+      await searchTrigger.waitFor({ state: 'visible', timeout: 5000 });
+      await searchTrigger.click({ force: true });
+    } catch { /* searchbox ya visible, no necesita trigger */ }
+
     await this.searchBox.waitFor({ state: 'visible' });
     await this.searchBox.click({ force: true });
     await this.searchBox.fill(term);
