@@ -6,6 +6,7 @@ node_modules/
 
 # Resultados y reportes de tests
 reports/
+allure-results/
 playwright-report/
 test-results/
 

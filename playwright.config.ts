@@ -40,6 +40,7 @@ export default defineConfig({
     ['html', { outputFolder: 'reports/html', open: 'never' }],
     ['list'],
     ['json', { outputFile: 'reports/results.json' }],
+    ['allure-playwright', { outputFolder: 'reports/allure-results' }],
   ],
 
   // ─── Ajustes globales aplicados a TODOS los tests ────────────────────────────
