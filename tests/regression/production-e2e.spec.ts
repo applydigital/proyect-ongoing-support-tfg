@@ -22,8 +22,7 @@ import { BasketPage } from '@pages/common/basket.page';
 import { CheckoutPage } from '@pages/common/checkout.page';
 import { ProductListPage } from '@pages/common/product-list.page';
 
-// Ocultar navigator.webdriver antes de cada navegación para evitar detección de bots
-// (Globale bloquea el seteo de cookies en modo headless cuando detecta automatización).
+// Ocultar navigator.webdriver antes de cada navegación para evitar detección de bots.
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
@@ -36,43 +35,12 @@ for (const brand of regressionBrands) {
 
     test.describe(`[${brand.name}] [${region.name}] Production regression`, () => {
 
-      // NO pre-inyectar cookies de Globale que suprimen el popup.
-      // Con GlobalE_CT_Data=1 el popup no aparece → no podemos hacer click en GUARDAR.
-      // Sin ese cookie, Globale detecta Argentina (IP) → muestra el popup →
-      // dismissModalsIfPresent() hace click en GUARDAR con UK seleccionado →
-      // Globale actualiza la sesión server-side a UK → ATC va al carrito SFCC (no Globale).
-      test.beforeEach(async ({ page }) => {
-        const hostname = new URL(brand.prodUrl).hostname;
-        const globalePreference = JSON.stringify({
-          countryISO: 'GB',
-          currencyCode: 'GBP',
-          cultureCode: 'en-GB',
-          countryName: 'United Kingdom',
-        });
-
-        // Interceptar Cart-AddProduct: añadir cookie UK solo si no hay ya una firmada.
-        // Si Globale.js ya seteó GlobalE_Data=GB (firmada), no la reemplazamos — el
-        // cartridge server-side la usa para rutear al carrito SFCC UK directamente.
-        await page.route('**/Cart-AddProduct**', async route => {
-          const headers = { ...route.request().headers() };
-          const cookies = (headers['cookie'] || '')
-            .split(';')
-            .map((c: string) => c.trim())
-            .filter(Boolean);
-          const hasGlobaleData = cookies.some(
-            (c: string) => c.toLowerCase().startsWith('globale_data=')
-          );
-          if (!hasGlobaleData) {
-            cookies.push(`GlobalE_Data=${globalePreference}`);
-            cookies.push('GlobalE_Welcome_Data=1');
-          }
-          headers['cookie'] = cookies.join('; ');
-          await route.continue({ headers });
-        });
-      });
+      // Los sites de producción cargan analytics pesados que retrasan el cierre del contexto.
+      // 150s garantiza tiempo suficiente tanto para el cuerpo del test como para teardown.
+      test.setTimeout(150000);
 
       test('homepage loads with correct title', { tag: '@non-transactional' }, async ({ page }) => {
-        await page.goto(baseUrl);
+        await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
         await home.dismissModalsIfPresent();
@@ -80,7 +48,7 @@ for (const brand of regressionBrands) {
       });
 
       test('search returns results', { tag: '@non-transactional' }, async ({ page }) => {
-        await page.goto(baseUrl);
+        await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
         await home.dismissModalsIfPresent();
@@ -98,7 +66,7 @@ for (const brand of regressionBrands) {
       });
 
       test('add to cart → basket has item', { tag: '@non-transactional' }, async ({ page }) => {
-        await page.goto(baseUrl);
+        await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
         await home.dismissModalsIfPresent();
@@ -112,7 +80,7 @@ for (const brand of regressionBrands) {
       });
 
       test('checkout is reachable — stops before payment', { tag: '@non-transactional' }, async ({ page }) => {
-        await page.goto(baseUrl);
+        await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
         await home.dismissModalsIfPresent();

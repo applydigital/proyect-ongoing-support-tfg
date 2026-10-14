@@ -5,8 +5,10 @@
  *   Hobbs:        UK · AU · US · ROW
  *   Phase Eight:  UK · AU · EU · ROW
  *   Inside Story: UK
+ *   Whistles:     UK (React/SPC — spec separado en production-whistles.spec.ts)
  *
  * DACH (solo Phase Eight) se gestiona aparte en staging-dach.
+ * Whistles usa frontend React/SPC — no comparte el flujo SFRA de production-e2e.spec.ts.
  */
 
 type Region = { name: string; path: string };
@@ -63,6 +65,18 @@ export const regressionBrands: BrandData[] = [
     ],
   },
 ];
+
+// Whistles — React/SPC frontend, spec separado production-whistles.spec.ts
+export const whistlesRegressionBrand = {
+  name: 'Whistles',
+  prodUrl: process.env.WHISTLES_PROD_URL ?? 'https://www.whistles.com',
+  searchTerm: 'dress',
+  categoryPath: '/clothing/',
+  expectedTitlePattern: /Whistles/i,
+  regions: [
+    { name: 'UK', path: '/' },
+  ],
+};
 
 // DACH — solo Phase Eight tiene región alemana
 export const dachRegion = { name: 'DACH', path: '/de/' };

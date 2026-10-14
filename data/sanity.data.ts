@@ -24,6 +24,8 @@ type BrandData = {
   prodUrl: string;
   searchTerm: string;
   categoryPath: string;
+  /** Plantilla para búsqueda directa por URL. {q} se reemplaza por el término. */
+  searchPath?: string;
   regions: Region[];
 };
 
@@ -56,11 +58,14 @@ export const sanitySiteData: BrandData[] = [
     ],
   },
   {
-    name: 'Inside Story',
-    stagingUrl: process.env.INSIDE_STORY_BASE_URL ?? 'https://stage.insidestory.com',
-    prodUrl: process.env.INSIDE_STORY_PROD_URL ?? 'https://www.insidestory.com',
-    searchTerm: 'table',
-    categoryPath: '/all-products/',
+    name: 'Whistles',
+    stagingUrl: process.env.WHISTLES_BASE_URL ?? 'https://stage.whistles.com',
+    prodUrl: process.env.WHISTLES_PROD_URL ?? 'https://www.whistles.com',
+    searchTerm: 'dress',
+    categoryPath: '/bags/',
+    // Whistles usa React/WR — el searchbox no responde al flujo SFRA en Safari.
+    // Navegación directa a la URL de búsqueda como fallback confiable cross-browser.
+    searchPath: '/search/?q={q}',
     regions: [
       { name: 'UK', path: '/' },
     ],

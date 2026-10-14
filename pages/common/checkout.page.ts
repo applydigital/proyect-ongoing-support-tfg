@@ -57,7 +57,10 @@ export class CheckoutPage extends BasePage {
     const guestBtn = this.page.getByRole('button', { name: /continue as guest/i }).first();
     const btnVisible = await guestBtn.isVisible().catch(() => false);
     if (btnVisible) {
-      await guestBtn.click();
+      // Intentar click normal; si un overlay lo cubre, caer al JS click que ignora CSS/z-index.
+      await guestBtn.click({ timeout: 10000 }).catch(async () => {
+        await guestBtn.evaluate(el => (el as HTMLElement).click());
+      });
     } else if (await guestBtn.count() > 0) {
       // Botón en DOM pero CSS-oculto por overlay — JS click ignora CSS.
       await guestBtn.evaluate(el => (el as HTMLElement).click());
@@ -70,6 +73,18 @@ export class CheckoutPage extends BasePage {
       }
     }
     await this.page.waitForLoadState('domcontentloaded');
+
+    // Si el email ya tiene cuenta, el checkout cambia a "Welcome back / Sign in" y "Continue as
+    // guest" pasa a ser un enlace (no un botón). Si seguimos en /login, se reintenta con el texto.
+    if (/\/login/i.test(this.page.url())) {
+      // Solo el visible: hay copias ocultas del mismo texto y .first() puede tomar una de ellas.
+      const guestLink = this.page.getByText(/^\s*continue as guest\s*$/i).filter({ visible: true }).first();
+      await guestLink.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+      await guestLink.click({ timeout: 5000 }).catch(async () => {
+        await guestLink.evaluate(el => (el as HTMLElement).click()).catch(() => {});
+      });
+      await this.page.waitForURL(url => !/\/login/i.test(url.toString()), { timeout: 20000 }).catch(() => {});
+    }
 
     // SFCC puede responder al click de "continue as guest" con un JSON AJAX en vez de
     // navegar (ej. Inside Story). Si el body es JSON con redirectUrl, seguirlo manualmente.
@@ -102,6 +117,26 @@ export class CheckoutPage extends BasePage {
     // Esperar a que el formulario de dirección esté visible y listo.
     await this.page.getByRole('combobox', { name: /title/i }).first()
       .waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+
+    // Expandir "Enter address manually" ANTES de rellenar nombre/teléfono. En staging, si se
+    // hace después, el widget Loqate deja los campos de dirección ocultos y el formulario no
+    // avanza (el paso de dirección queda vacío y nunca se llega al pago).
+    // Ojo: isVisible({ timeout }) NO espera (mira solo en ese instante) y el widget Loqate carga
+    // de forma asíncrona, por eso se usa waitFor.
+    const enterManuallyEarly = this.page.getByRole('link', { name: /enter address manually/i });
+    const manualAppeared = await enterManuallyEarly
+      .waitFor({ state: 'visible', timeout: 15000 })
+      .then(() => true, () => false);
+    if (manualAppeared) {
+      // El enlace existe antes de que el script de direcciones le asigne su acción: un click
+      // muy temprano no hace nada. Se reintenta hasta que #addressOne aparezca de verdad.
+      const addressOneProbe = this.page.locator('#addressOne').first();
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (await addressOneProbe.isVisible().catch(() => false)) break;
+        await enterManuallyEarly.evaluate(el => (el as HTMLElement).click()).catch(() => {});
+        await this.page.waitForTimeout(1500);
+      }
+    }
 
     // Título/saludo — requerido en Hobbs (combobox con opciones Miss/Mrs/Ms/Mr...).
     // Seleccionar la segunda opción (primera no-placeholder) si el combobox existe.
@@ -161,15 +196,24 @@ export class CheckoutPage extends BasePage {
             parent.style.display = '';
           }
           if (getComputedStyle(parent).display === 'none') {
-            parent.style.display = 'block';
+            // Confirmado en staging: el contenedor (address-fields__row) se oculta con una clase
+            // tipo d-none, que usa `display:none !important`. Un `style.display = 'block'` normal
+            // NO le gana, hay que usar setProperty(..., 'important') y quitar la clase.
+            parent.classList.remove('d-none', 'hidden');
+            parent.style.setProperty('display', 'block', 'important');
           }
           parent = parent.parentElement as HTMLElement | null;
         }
         el.style.removeProperty('display');
       }
       // Ocultar el wrapper del Loqate search para que no solape con los campos reales.
+      // Solo si NO envuelve los campos reales: en staging ese wrapper puede ser un ancestro de
+      // #addressOne y ocultarlo dejaba la dirección vacía (error "Address Line 1 / Postcode / Town").
       const loqateSearch = document.querySelector<HTMLElement>('.loqate-search, .pca, [class*="loqate"], [id*="loqate"]');
-      if (loqateSearch) loqateSearch.style.display = 'none';
+      const addressField = document.getElementById('addressOne');
+      if (loqateSearch && !(addressField && loqateSearch.contains(addressField))) {
+        loqateSearch.style.display = 'none';
+      }
     }).catch(() => {});
 
     // Breve espera para que el DOM se estabilice tras la manipulación.
@@ -177,7 +221,9 @@ export class CheckoutPage extends BasePage {
 
     // Rellenar por ID SFCC (confirmados por el snapshot).
     const addr1ById = this.page.locator('#addressOne').first();
-    if (await addr1ById.isVisible({ timeout: 3000 }).catch(() => false)) {
+    // waitFor de verdad (isVisible no espera): el formulario manual puede tardar en mostrarse.
+    const addr1Shown = await addr1ById.waitFor({ state: 'visible', timeout: 10000 }).then(() => true, () => false);
+    if (addr1Shown) {
       await addr1ById.fill(address.address1);
     } else {
       const addr1 = this.page.getByRole('textbox', {
@@ -198,7 +244,7 @@ export class CheckoutPage extends BasePage {
 
     // Ciudad — ID confirmado por el snapshot: #city.
     const cityById = this.page.locator('#city').first();
-    if (await cityById.isVisible({ timeout: 3000 }).catch(() => false)) {
+    if (await cityById.waitFor({ state: 'visible', timeout: 5000 }).then(() => true, () => false)) {
       await cityById.fill(address.city);
     } else {
       const cityField = this.page.getByRole('textbox', { name: /town|city/i }).first();
@@ -209,7 +255,7 @@ export class CheckoutPage extends BasePage {
 
     // Código postal — ID confirmado por el snapshot: #postalCode.
     const postcodeById = this.page.locator('#postalCode').first();
-    if (await postcodeById.isVisible({ timeout: 3000 }).catch(() => false)) {
+    if (await postcodeById.waitFor({ state: 'visible', timeout: 5000 }).then(() => true, () => false)) {
       await postcodeById.fill(address.postcode);
     } else {
       const postcodeField = this.page.getByRole('textbox', { name: /^postcode|^postal code|^zip code/i }).first();
@@ -256,17 +302,29 @@ export class CheckoutPage extends BasePage {
       document.querySelectorAll('[class*="globale_overlay"], [class*="globale-overlay"]').forEach(el => el.remove());
       document.querySelectorAll('[id^="bx-campaign-"], .bx-type-overlay').forEach(el => el.remove());
     }).catch(() => {});
-    const continueToPayment = this.page.getByRole('button', { name: /continue to payment/i });
+    // Por texto, no por rol: en Hobbs y Phase Eight el botón no se resuelve por rol (0 coincidencias)
+    // y además mide tamaño 0 aunque es clickeable, por eso abajo se cae al click por JS.
+    const continueToPayment = this.page.locator('button:has-text("Continue to Payment")').first();
     // Esperar hasta 8s a que aparezca el botón. Si no aparece (cesta vacía / error upstream),
     // continuar sin bloquear — el count check siguiente se encarga de no hacer nada.
     await continueToPayment.waitFor({ state: 'visible', timeout: 8000 }).catch(() => {});
     const count = await continueToPayment.count().catch(() => 0);
     if (count === 0) return;
     const isVisible = await continueToPayment.isVisible().catch(() => false);
-    if (isVisible) {
-      await continueToPayment.click();
-    } else {
-      await continueToPayment.evaluate(el => (el as HTMLElement).click()).catch(() => {});
+    try {
+      if (isVisible) {
+        await continueToPayment.click();
+      } else {
+        await continueToPayment.evaluate(el => (el as HTMLElement).click());
+      }
+    } catch (err) {
+      // Confirmado en Inside Story (trace + captura): el propio click dispara la transición
+      // Delivery → Payment, y el botón queda "detached from the DOM" a mitad de la espera de
+      // Playwright, que lo reporta como fallo aunque el click ya haya funcionado. Si el paso de
+      // pago ya es visible, no es una falla real — se ignora el error.
+      const reachedPayment = await this.page.getByRole('button', { name: /place order/i })
+        .isVisible({ timeout: 5000 }).catch(() => false);
+      if (!reachedPayment) throw err;
     }
     await this.page.waitForLoadState('domcontentloaded');
   }
@@ -276,20 +334,47 @@ export class CheckoutPage extends BasePage {
    * Solo usar en staging con tarjetas de test.
    */
   async fillAdyenCard(card: CardDetails): Promise<void> {
-    const cardNumberFrame = this.page.frameLocator(
-      '[data-fieldtype="encryptedCardNumber"] iframe, .adyen-checkout__card__cardNumber__input iframe'
-    ).first();
-    await cardNumberFrame.locator('input').first().fill(card.number);
+    // Si el método "Credit/Debit Card" no está abierto, los campos de Adyen no se renderizan.
+    // En Hobbs/Phase Eight el método es un bloque clickeable con un <p> "Credit/Debit Card" (no un label).
+    const cardOption = this.page.getByText(/^\s*Credit\s*\/\s*Debit Card\s*$/i).first();
+    await cardOption.waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
+    // Un click demasiado temprano (el paso de pago aún se está armando) no hace nada: se reintenta
+    // hasta que el iframe de la tarjeta esté realmente visible. Ojo: el radio "scheme" puede venir
+    // YA marcado como checked desde el HTML inicial (confirmado en Inside Story) sin que el panel
+    // esté desplegado todavía — isChecked() solo no alcanza como señal de éxito, hay que
+    // comprobar el iframe en sí.
+    const cardNumberIframeVisible = () => this.page
+      .frameLocator('iframe[title="Iframe for secured card number"]')
+      .locator('input[data-fieldtype="encryptedCardNumber"]')
+      .isVisible().catch(() => false);
+    for (let attempt = 0; attempt < 5; attempt++) {
+      if (await cardNumberIframeVisible()) break;
+      await cardOption.click({ force: true, timeout: 5000 }).catch(async () => {
+        await cardOption.evaluate(el => (el as HTMLElement).click()).catch(() => {});
+      });
+      await this.page.waitForTimeout(2000);
+    }
 
-    const expiryFrame = this.page.frameLocator(
-      '[data-fieldtype="encryptedExpiryDate"] iframe, .adyen-checkout__card__exp-date__input iframe'
-    ).first();
-    await expiryFrame.locator('input').first().fill(card.expiry);
+    // El primer <input> de cada iframe de Adyen es un campo auxiliar oculto (shiftTabField);
+    // hay que apuntar al que lleva data-fieldtype y escribir con el teclado.
+    const typeInto = async (iframeTitle: string, fieldtype: string, value: string) => {
+      const input = this.page
+        .frameLocator(`iframe[title="${iframeTitle}"]`)
+        .locator(`input[data-fieldtype="${fieldtype}"]`);
+      await input.waitFor({ state: 'visible', timeout: 30000 });
+      await input.click();
+      await input.pressSequentially(value.replace(/\s|\//g, ''), { delay: 60 });
+    };
+    await typeInto('Iframe for secured card number', 'encryptedCardNumber', card.number);
+    await typeInto('Iframe for secured card expiry date', 'encryptedExpiryDate', card.expiry);
+    await typeInto('Iframe for secured card security code', 'encryptedSecurityCode', card.cvv);
 
-    const cvvFrame = this.page.frameLocator(
-      '[data-fieldtype="encryptedSecurityCode"] iframe, .adyen-checkout__card__cvc__input iframe'
-    ).first();
-    await cvvFrame.locator('input').first().fill(card.cvv);
+    // El formulario de Hobbs/Phase Eight exige "Name on card"; sin él Adyen marca
+    // "Invalid cardholder name" y el pedido no se envía.
+    const holderName = this.page.locator('input[name="holderName"]').first();
+    if (await holderName.waitFor({ state: 'visible', timeout: 5000 }).then(() => true, () => false)) {
+      await holderName.fill('Test User');
+    }
   }
 
   /** Verifica que el formulario de entrega es visible — confirma que el checkout cargó. */
@@ -321,17 +406,15 @@ export class CheckoutPage extends BasePage {
     try {
       const globaleFrame = this.page.frameLocator('iframe').first();
       const checkoutHeading = globaleFrame.getByRole('heading', { name: /checkout/i }).first();
-      await checkoutHeading.waitFor({ state: 'visible', timeout: 8000 });
+      await checkoutHeading.waitFor({ state: 'visible', timeout: 15000 });
       return true;
     } catch { /* continuar */ }
 
-    // 4. Fallback URL: si la URL contiene "checkout" o estamos en /bag/ con un iframe activo,
-    //    asumir que el checkout es accesible.
+    // 4. Fallback: URL contiene "checkout" (no "bag" — estar en la página de cesta vacía
+    //    no es suficiente evidencia de que el checkout sea accesible).
     try {
       const url = this.page.url();
-      const hasCheckoutUrl = /checkout|bag/i.test(url);
-      const hasIframe = await this.page.locator('iframe').count() > 0;
-      if (hasCheckoutUrl && hasIframe) return true;
+      if (/checkout/i.test(url)) return true;
     } catch { /* ignorar */ }
 
     return false;

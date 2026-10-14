@@ -10,14 +10,16 @@
     "test:phase-eight": "playwright test --project=phase-eight",
     "test:whistles": "playwright test --project=whistles",
     "test:sanity": "playwright test --project=sanity-chrome --project=sanity-firefox --project=sanity-safari",
+    "test:sanity:uk": "playwright test --project=sanity-chrome --grep \"\\[UK\\]\" --workers=3",
     "test:regression:staging": "playwright test --project=regression-staging",
-    "test:regression:prod": "playwright test --project=regression-prod",
-    "test:regression:prod:uk": "playwright test --project=regression-prod --grep \"\\[UK\\]\"",
+    "test:regression:prod": "playwright test --project=regression-prod --project=regression-prod-webkit --project=regression-prod-edge",
+    "test:regression:prod:uk": "playwright test --project=regression-prod --project=regression-prod-webkit --project=regression-prod-edge --grep \"\\[UK\\]\" --workers=3",
     "test:regression:staging:dach": "playwright test --project=regression-staging tests/regression/staging-dach.spec.ts",
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
     "report": "playwright show-report reports/html",
+    "report:allure": "allure generate reports/allure-results --clean -o reports/allure-report && allure open reports/allure-report",
     "report:slack": "node scripts/slack-summary.js",
     "codegen:hobbs": "playwright codegen https://stage.hobbs.com/",
     "codegen:phase-eight": "playwright codegen https://stage.phase-eight.com/"
@@ -34,6 +36,8 @@
   "devDependencies": {
     "@playwright/test": "^1.61.0",
     "@types/node": "^26.0.0",
+    "allure-commandline": "^2.43.0",
+    "allure-playwright": "^3.12.1",
     "typescript": "^6.0.3"
   },
   "dependencies": {
