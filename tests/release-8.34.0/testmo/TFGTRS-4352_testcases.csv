@@ -1,0 +1,17 @@
+Title,Priority,Template,Tags,Pre-Condition,Steps,Expected
+"TFGTRS-4352 - Hreflang cluster on Hobbs: single en to ROW, x-default to ROW, no raw SFCC links",High,,TFGTRS-4352,"Dev environment is accessible (basic auth credentials available).","1. Open the Hobbs home page.
+2. View the page source and search for hreflang.
+3. Check each alternate link and open every URL.","There is one single ""en"" entry pointing to ROW and an x-default entry pointing to ROW. No link uses a raw SFCC domain (demandware.net). Every URL in the cluster returns 200 and has no noindex."
+"TFGTRS-4352 - Hreflang cluster on Phase Eight: de, en (EU), x-default (ROW), en-au, en-gb",High,,TFGTRS-4352,"Dev environment is accessible (basic auth credentials available).","1. Open the Phase Eight home page.
+2. View the page source and search for hreflang.
+3. Open every URL of the cluster.","The cluster contains de pointing to /de/, en pointing to /eu/, x-default pointing to ROW, en-au and en-gb. There is no duplicated ""en"", no /de/home/ entry and no raw SFCC link. Every URL returns 200."
+"TFGTRS-4352 - Hreflang cluster on Whistles: single en to ROW and x-default",High,,TFGTRS-4352,"Dev environment is accessible (basic auth credentials available).","1. Open the Whistles home page.
+2. View the page source and search for hreflang.
+3. Open every URL of the cluster.","One single ""en"" pointing to ROW and an x-default pointing to ROW. No raw SFCC link. Every URL returns 200 and is indexable."
+"TFGTRS-4352 - Phase Eight EU and DACH homepages are indexable",High,,TFGTRS-4352,"Dev environment is accessible (basic auth credentials available).","1. Open /eu/ and /de/ on Phase Eight.
+2. View the page source and search for the robots meta tag.
+3. Open a category page and a product page on each of them and repeat.","The /eu/ and /de/ homepages do not contain noindex or nofollow. Category and product pages remain indexable."
+"TFGTRS-4352 - Same hreflang cluster on category and product pages",Medium,,TFGTRS-4352,"Dev environment is accessible (basic auth credentials available).","1. For Hobbs, Phase Eight (UK, /de/, /eu/) and Whistles open a category page and a product page.
+2. Compare their hreflang entries with the ones on the home page.","The cluster is the same as on the home page: no duplicated ""en"", x-default present, no raw SFCC links."
+"TFGTRS-4352 - Canonical is unique and uses the SEO domain",Medium,,TFGTRS-4352,"Dev environment is accessible (basic auth credentials available).","1. Open a home, a category and a product page on each brand.
+2. View the page source and search for rel=""canonical"".","There is exactly one canonical per page and it uses the site domain, never a demandware.net host."

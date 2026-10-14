@@ -1,0 +1,22 @@
+Title,Priority,Template,Tags,Pre-Condition,Steps,Expected
+"TFGTRS-4604 - Custom preferences are renamed and sale vs full price controls are clearly separated",High,,TFGTRS-4604,"Business Manager access on dev. The exact preference names and pricebooks per brand are pending confirmation from the developer.","1. Open the Custom Preferences group that controls the automated £ / % badges.
+2. Check the names of the preferences.","There are separate controls for sale / hard markdown products and for full price products, with names that make the difference clear."
+"TFGTRS-4604 - Full price badge switched off: no badge on full price promoted products",High,,TFGTRS-4604,"Full price badge control set to off. A full price product (list price in the full price pricebook, no lower price in the hard markdown pricebook) with a layered promotion.","1. Open the PLP that contains the product.
+2. Check the product tile.","No automated £ or % badge is shown on the full price product."
+"TFGTRS-4604 - Full price badge on, percentage mode: ""20% Off"" for a 20% off all full price promotion",High,,TFGTRS-4604,"Full price badge control on and set to % off. A promotion ""20% off all full price"" active on the brand.","1. Open a PLP with full price products in the promotion.
+2. Check the badge.","The badge shows ""20% Off""."
+"TFGTRS-4604 - Full price badge switched to £ off",High,,TFGTRS-4604,"Full price badge control on and set to £ off. A line-list promotion (e.g. up to £100 off coats) where each product gets a different discount.","1. Open the PLP.
+2. Check the badge of each promoted product.","Each badge shows the £ amount calculated from the original full price minus the promotion price (e.g. £20 off, £40 off)."
+"TFGTRS-4604 - Promotion using a pricebook: difference against the original list price",Medium,,TFGTRS-4604,"A promotion that uses a pricebook for the promotional price.","1. Open the PLP.
+2. Compare the badge with the full price list price and the promotion price.","The badge is calculated from the difference between the original full price list price and the promotion price."
+"TFGTRS-4604 - Different promotion types",Medium,,TFGTRS-4604,"Promotions of different types available on dev (% off, amount off, fixed price).","1. For each type of promotion, check the badge on the PLP.","The badge is correct for each supported type, or absent when the type is not supported."
+"TFGTRS-4604 - Sale badges on the PLP still look as before the change - Hobbs and Phase Eight",High,,TFGTRS-4604,"Dev environment is accessible (basic auth credentials available). Requested by dev as an interim regression check, before the full-price preferences/pricebooks are confirmed. No Business Manager change needed for this case.","1. Open the Sale PLP on Hobbs.
+2. Open the Sale PLP on Phase Eight.
+3. Check the % or £ off badge on a sample of sale products on each brand.","The sale badges show the same % or £ off as before this ticket, with no visual regression or missing badges."
+"TFGTRS-4604 - Sale / hard markdown badges are not affected by the new full price controls",High,,TFGTRS-4604,"Business Manager access on dev. Sale products with a lower price in the hard markdown pricebook. Needs the full price preferences confirmed by dev.","1. Change the full price controls (on / off, % / £).
+2. Check the badges on sale products.
+3. Change the sale controls and check the full price products.","Sale badges (e.g. 40% off, 50% off) keep working as before. Sale and full price controls are independent of each other."
+"TFGTRS-4604 - Full price products without a promotion show no badge",High,,TFGTRS-4604,"Full price product with no promotion. The earlier bug showed £ and % badges on full price products.","1. Open the PLP and check full price products without a promotion.","No automated badge is shown."
+"TFGTRS-4604 - Product with a lower price in the hard markdown pricebook is treated as sale",Medium,,TFGTRS-4604,"Product with a price in the hard markdown pricebook and a layered promotion.","1. Open the PLP and check the badge.","The product follows the sale badge controls, not the full price controls."
+"TFGTRS-4604 - Badges behave the same on Hobbs and Phase Eight",Medium,,TFGTRS-4604,"Per dev, this ticket only affects Hobbs and Phase Eight. Whistles and Inside Story are out of scope.","1. Repeat the main checks on Hobbs.
+2. Repeat the main checks on Phase Eight.","The behaviour is the same on both brands."

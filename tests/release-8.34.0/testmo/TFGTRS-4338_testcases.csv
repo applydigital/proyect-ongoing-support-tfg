@@ -1,0 +1,30 @@
+Title,Priority,Template,Tags,Pre-Condition,Steps,Expected
+"TFGTRS-4338 - PDP out of stock: Notify me OFF shows a disabled OUT OF STOCK button - Hobbs",High,,TFGTRS-4338,"Dev environment is accessible (basic auth credentials available). A multi-size product with all sizes out of stock and Notify me OFF (for example Amaia Shirt Dress). User has access to dev.hobbs.com.","1. Open the out of stock PDP.
+2. Check the OUT OF STOCK label and the breadcrumb.
+3. Check the in-page CTA and the sticky CTA.
+4. Try to click both.
+5. Repeat on mobile (375px) and desktop (1280px).","The OUT OF STOCK label is 16px on mobile and 20px on desktop, colour #1D1D1D, weight 600. The breadcrumb is kept. In-page and sticky CTAs read OUT OF STOCK and are not clickable."
+"TFGTRS-4338 - PDP out of stock: Notify me ON mobile sticky opens the size slide-up - Hobbs",High,,TFGTRS-4338,"Dev environment is accessible (basic auth credentials available). A multi-size product with all sizes out of stock and Notify me ON (for example Pink Pemberton Dress, 0126-5531-1185L00-BLUSH-PINK). The Petite Tia (0125-5152-9045L04-CREAM-MULTI) does not render sizes on dev, do not use it. 375px viewport.","1. Open the out of stock PDP at 375px width.
+2. Scroll until the sticky bar appears.
+3. Tap the sticky NOTIFY ME button.
+4. Check the size slide-up and the sizes.
+5. Select a size.
+6. Observe the Notify me panel.","The sticky NOTIFY ME opens the size slide-up with the product name, price, colour and sizes (shown as out of stock). 'PLEASE SELECT A SIZE' appears once below the sizes and is not repeated inside the size cells. Selecting a size shows the OUT OF STOCK copy and the Notify me panel slides up from the bottom."
+"TFGTRS-4338 - PDP out of stock: Notify me ON desktop sticky anchors to the sizes - Hobbs",High,,TFGTRS-4338,"Dev environment is accessible (basic auth credentials available). A multi-size product with all sizes out of stock and Notify me ON (for example Pink Pemberton Dress). 1280px viewport.","1. Open the out of stock PDP at 1280px width.
+2. Scroll until the sticky bar appears.
+3. Check the sticky bar content.
+4. Click the sticky NOTIFY ME.","The sticky bar shows product name, price and NOTIFY ME. Clicking it scrolls to the exposed sizes in the page (Figma [1 Desktop]) and does not open the email panel directly."
+"TFGTRS-4338 - PDP out of stock: in-page NOTIFY ME without a size asks to select a size - Hobbs",High,,TFGTRS-4338,"Dev environment is accessible (basic auth credentials available). A multi-size product with all sizes out of stock and Notify me ON (for example Pink Pemberton Dress). 1280px viewport.","1. Open the out of stock PDP at 1280px width.
+2. Without selecting a size, click the in-page NOTIFY ME.","'PLEASE SELECT A SIZE' appears below the sizes (Figma [4C]). It is not shown before the click. The email panel does not open."
+"TFGTRS-4338 - PDP out of stock: Notify me email panel button and validation - Hobbs",High,,TFGTRS-4338,"Dev environment is accessible (basic auth credentials available). A product with Notify me ON (for example Pink Pemberton Dress). Known issue pending a code fix, confirmed by dev.","1. Open the out of stock PDP and select an out of stock size.
+2. Open the Notify me panel.
+3. Check the NOTIFY ME button with an empty email.
+4. Enter an email in an invalid format (for example abc@@@x) and try to submit.
+5. Observe the error and the panel height.
+6. Enter a valid email.","The NOTIFY ME button is disabled only while the email field is empty. With an invalid email the button is enabled, the submit shows the red message ""Please enter a valid E-Mail address"" under the field, and the panel height does not change when the message appears (Figma [7]). With a valid email the request is sent. CURRENT BEHAVIOUR: the button is disabled with an invalid email and the message never appears."
+"TFGTRS-4338 - PDP out of stock: Notify me email panel does not overflow on mobile - Hobbs",High,,TFGTRS-4338,"Dev environment is accessible (basic auth credentials available). A product with Notify me ON (for example Pink Pemberton Dress). Known issue pending a code fix, confirmed by dev. Chrome DevTools responsive mode 375x630, and a real phone if available.","1. Open the out of stock PDP at 375x630.
+2. Open the Notify me email panel (from the sticky bar and from the in-page button).
+3. Check that the whole panel fits the screen width.","The intro text, the EMAIL field and the NOTIFY ME button fit inside the screen width, with no horizontal scrolling needed. CURRENT BEHAVIOUR: the text is cut off and the field and button go beyond the right edge."
+"TFGTRS-4338 - PDP out of stock: Sticky bar styling - Hobbs",Medium,,TFGTRS-4338,"Dev environment is accessible (basic auth credentials available). Out of stock products with Notify me ON and OFF.","1. Open the out of stock PDP (Notify me OFF, for example Amaia Shirt Dress) at 375px, scroll and check the sticky bar border and shadow.
+2. Open the same PDP at 1280px and check the sticky bar background and top line.
+3. Compare with Figma.","Mobile sticky has a thin line on top and no drop shadow (Figma [1-M]). Desktop sticky has an opaque white background with a grey line above (Figma [0 Desktop])."

@@ -1,0 +1,13 @@
+Title,Priority,Template,Tags,Pre-Condition,Steps,Expected
+"TFGTRS-4567 - Donna navy dress only offers the sizes the colour has (06-20)",High,,TFGTRS-4567,"Dev environment is accessible (basic auth credentials available). Product Donna dress 10018090351 on Phase Eight.","1. Open dev.phase-eight.com/product/donna-sleeveless-maxi-dress-10018090351.html with the Navy colour selected.
+2. Check the list of sizes.","Only sizes 06 to 20 are offered. Sizes 22, 24 and 26 are not displayed."
+"TFGTRS-4567 - Black and Red colours offer their own sizes (06-26)",Medium,,TFGTRS-4567,"Dev environment is accessible (basic auth credentials available).","1. On the same product select the Black colour and check the sizes.
+2. Select the Red colour and check the sizes.","Both colours offer sizes 06 to 26."
+"TFGTRS-4567 - Selecting a size does not switch the product to another colour",High,,TFGTRS-4567,"Dev environment is accessible (basic auth credentials available).","1. For each colour (Navy, Black, Red) select an available size.
+2. Check the product name, the colour label and the main image.","The product, colour and images stay the same after selecting a size. The dress does not change to the black version."
+"TFGTRS-4567 - Changing colour updates the list of sizes",Medium,,TFGTRS-4567,"Dev environment is accessible (basic auth credentials available).","1. Select Navy and note the sizes.
+2. Select Black and then Red and note the sizes each time.","The size list matches the selected colour every time."
+"TFGTRS-4567 - Other multi-colour products only offer the sizes of the selected colour",Medium,,TFGTRS-4567,"Dev environment is accessible (basic auth credentials available).","1. Open another Phase Eight product with several colours (for example Catherine Cream Jacket).
+2. Switch colours and compare the sizes of each one.","Each colour offers only its own sizes and selecting a size does not change the colour."
+"TFGTRS-4567 - Add to bag with a size of the selected colour",High,,TFGTRS-4567,"Dev environment is accessible (basic auth credentials available).","1. On the Donna dress select Navy and an available size.
+2. Add the product to the bag and open the bag.","The bag shows the Navy colour and the selected size."

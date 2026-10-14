@@ -1,0 +1,14 @@
+Title,Priority,Template,Tags,Pre-Condition,Steps,Expected
+"TFGTRS-4291 - Empty search results page: texts left aligned on mobile (375px)",High,,TFGTRS-4291,"Dev environment is accessible (basic auth credentials available). Phase Eight, search term with no results.","1. Open dev.phase-eight.com/search/?q=asdasdasda123&lang=en_GB at 375px width.
+2. Check the alignment of the title, the body copy and the ""Contact us"" line.","Title, body copy and sub title start at the same left margin (left aligned)."
+"TFGTRS-4291 - Empty search results page: texts left aligned on tablet (768px)",High,,TFGTRS-4291,"Dev environment is accessible (basic auth credentials available).","1. Open the same URL at 768px width.
+2. Check the alignment of the title, the body copy and the ""Contact us"" line.","Title, body copy and sub title are left aligned."
+"TFGTRS-4291 - Empty search results page: desktop (1440px) matches the design",Medium,,TFGTRS-4291,"Dev environment is accessible (basic auth credentials available).","1. Open the same URL at 1440px width.
+2. Compare it with the Figma design (node 40720-16084).","Texts are left aligned. Any difference with the design (for example heading case) is reported."
+"TFGTRS-4291 - Message, spelling hint and Contact Us link are shown",High,,TFGTRS-4291,"Dev environment is accessible (basic auth credentials available).","1. Search for a term with no results.
+2. Read the message and the help text.
+3. Click ""Contact Us"".","The message ""Sorry, there are no search results for: [term]"" is shown with the spelling hint and the Contact Us line. The link opens the contact page."
+"TFGTRS-4291 - ""Our Most Popular Products"" and quick links are displayed",Medium,,TFGTRS-4291,"Dev environment is accessible (basic auth credentials available).","1. On the empty results page scroll down.
+2. Check the product carousel and the quick links (Store Locator, Track Order, Delivery, Easy UK Returns).","The carousel shows products and every quick link is visible and works."
+"TFGTRS-4291 - Search with results is not affected",Low,,TFGTRS-4291,"Dev environment is accessible (basic auth credentials available).","1. Search for ""dress"" on Phase Eight.
+2. Check the results page.","Results are displayed as before, with products and filters."
