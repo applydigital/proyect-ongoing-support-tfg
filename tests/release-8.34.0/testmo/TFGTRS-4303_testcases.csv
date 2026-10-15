@@ -1,0 +1,37 @@
+Title,Priority,Template,Tags,Pre-Condition,Steps,Expected
+"TFGTRS-4303 - Registration with every allowed title - Hobbs, Phase Eight, Whistles, Inside Story",High,,TFGTRS-4303,"Dev environment is accessible (basic auth credentials available). Use a new email alias for each registration (e.g. name+qa1@domain). Allowed titles: Miss, Mrs, Ms, Mr, Mx, Dr, Prof.","1. Open /account/register/ on each brand.
+2. Select a title from the dropdown and fill in the rest of the form.
+3. Submit the registration.
+4. Repeat with a different allowed title.","The account is created and the user lands on the account area (Inside Story has no My Details page on dev)."
+"TFGTRS-4303 - Edit title in My Details - Hobbs, Phase Eight, Whistles",High,,TFGTRS-4303,"Dev environment is accessible (basic auth credentials available). Registered test account on each brand. Whistles posts to Account-SaveDetails; Hobbs and Phase Eight to Account-SaveProfile.","1. Log in and open /account/details/.
+2. Change the title to another allowed value.
+3. Enter the current password and save.
+4. Reload the page.","The details are saved and the new title is selected after reloading."
+"TFGTRS-4303 - Title outside the allowed list is rejected on save",High,,TFGTRS-4303,"Dev environment is accessible (basic auth credentials available). Logged-in test account. A value outside the list can be sent by adding an option to the dropdown with DevTools, or by sending the request directly.","1. Open /account/details/.
+2. Add an option with value ""Sir"" to the title dropdown (DevTools) and select it.
+3. Enter the current password and save.
+4. Reload the page.","The save is rejected with ""Please select a valid title."" and the previous title is kept."
+"TFGTRS-4303 - Title outside the allowed list is rejected on registration",High,,TFGTRS-4303,"Dev environment is accessible (basic auth credentials available). New email alias.","1. Open /account/register/.
+2. Add an option with value ""Sir"" to the title dropdown (DevTools) and select it.
+3. Fill in the rest of the form and submit.","The registration is rejected with ""Please select a valid title."" and no account is created."
+"TFGTRS-4303 - Script payload in the title is not stored or executed",High,,TFGTRS-4303,"Dev environment is accessible (basic auth credentials available). Cloudflare may block obvious script payloads with a 403 before they reach the application, so the application-level validation may need a developer to confirm it with a payload that gets through.","1. Try to save a title with a harmless HTML payload, for example <b>x</b>, via DevTools or a direct request.
+2. Check the response and the account, checkout and address pages.","The value is rejected. If it is ever stored, it is shown as plain text and never rendered or executed."
+"TFGTRS-4303 - Wrong current password: error and nothing is saved - Hobbs, Phase Eight, Whistles",High,,TFGTRS-4303,"Dev environment is accessible (basic auth credentials available). Logged-in test account.","1. Open /account/details/.
+2. Change the title and enter a wrong current password.
+3. Save.
+4. Reload the page and check that the password field is empty.","The error ""Does not match the current password"" is shown and the change is not saved. After reloading, the password field is empty."
+"TFGTRS-4303 - Password is not exposed in the page - Hobbs and Phase Eight",High,,TFGTRS-4303,"Dev environment is accessible (basic auth credentials available). Logged-in test account. Chrome DevTools.","1. Open /account/details/ and view the page source.
+2. Search for the account password in the source, the console, local storage, session storage and cookies.
+3. Repeat after a failed save.","The password is not present in the HTML, scripts or browser storage."
+"TFGTRS-4303 - Title validation on Inside Story (no My Details page on dev)",Medium,,TFGTRS-4303,"Dev environment is accessible (basic auth credentials available). Logged-in test account. /account/details/ returns 404 on Inside Story dev, so the checks use direct requests to Account-SaveProfile.","1. Send Account-SaveProfile with title ""Sir"".
+2. Send it with a valid title.
+3. Send it with a wrong current password.
+4. Send a registration with title ""Sir"".","""Sir"" is rejected with ""Please select a valid title."" in both cases, the valid title is saved, and the wrong password returns ""Does not match the current password""."
+"TFGTRS-4303 - Title validation on Damsel in a Dress",Medium,,TFGTRS-4303,"Dev URL of Damsel in a Dress needed. The brand is in the ticket scope but was not tested yet.","1. Repeat the registration, edit and invalid-title checks on Damsel in a Dress.","The behaviour is the same as on the other brands."
+"TFGTRS-4303 - Title is shown correctly in the account, addresses and checkout",Medium,,TFGTRS-4303,"Dev environment is accessible (basic auth credentials available). Test account with a saved title.","1. Log in and check the account area and saved addresses.
+2. Start a checkout and check the delivery address summary.","The title is displayed as plain text (e.g. Dr, Ms) and the pages are not broken."
+"TFGTRS-4303 - Already stored invalid titles no longer run",High,,TFGTRS-4303,"Needs test data seeded by a developer: a customer with an invalid or HTML title stored before the fix.","1. Log in as that customer.
+2. Open the account area, the addresses and the checkout.","The stored value is shown as text (or ignored) and is not executed. The pages work."
+"TFGTRS-4303 - Production cleanup job (developer task, per brand)",High,,TFGTRS-4303,"Run by a developer from Business Manager once per brand, after the QA validation. Cannot be tested in dev by QA alone.","1. Run the cleanup in report-only mode and note how many customers have an invalid title.
+2. Review the report and run it in apply mode.
+3. Run the report again.","The second report shows 0 customers with an invalid title."

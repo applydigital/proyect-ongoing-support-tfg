@@ -1,0 +1,207 @@
+Title,Priority,Template,Tags,Pre-Condition,Steps,Expected
+"TFGTRS-4609 - Console: no InvalidStateError (responseText) after accepting cookies - all brands and regions (Chrome)",High,,TFGTRS-4609,"Dev environment is accessible (basic auth credentials available). Chrome with DevTools available.","1. Open the home page of each site and region: Hobbs (/, /au/, /us/, /row/), Phase Eight (/, /eu/, /de/, /au/, /row/), Whistles (/, /au/, /us/, /row/), Inside Story (/).
+2. Open the DevTools console.
+3. Accept the cookie banner.
+4. Wait about 10 seconds and scroll the page a little.
+5. Check the console error logs.","No ""Uncaught InvalidStateError: Failed to read the 'responseText' property from 'XMLHttpRequest'... (was 'json')"" error appears on any site or region."
+"TFGTRS-4609 - Console: no InvalidStateError in Safari",High,,TFGTRS-4609,"Dev environment is accessible (basic auth credentials available). Safari (desktop or iOS) with the web inspector enabled.","1. Open the home page of Hobbs, Phase Eight and Whistles in Safari.
+2. Open the web inspector console.
+3. Accept the cookie banner.
+4. Wait about 10 seconds and check the console.","The error ""InvalidStateError: The object is in an invalid state."" does not appear."
+"TFGTRS-4609 - Console: no InvalidStateError across a full journey - Hobbs and Phase Eight",Medium,,TFGTRS-4609,"Dev environment is accessible (basic auth credentials available).","1. Open the console.
+2. Accept cookies.
+3. Type a term in the search box to show suggestions.
+4. Open a PLP and a PDP, select a size and add the product to the bag.
+5. Open the bag and start the checkout.
+6. Check the console after each step.","No InvalidStateError / responseText error is logged at any step."
+"TFGTRS-4609 - Analytics tracking still works after the fix",High,,TFGTRS-4609,"Dev environment is accessible (basic auth credentials available). Network tab or Tag Assistant available.","1. Open a product page and add a product to the bag.
+2. Open the bag.
+3. In the console run window.dataLayer and check the events; check the Network tab for Google Analytics and Contentsquare requests.","Analytics requests are sent (GA and Contentsquare) and dataLayer contains the expected events (for example view_cart). Nothing is missing compared with production."
+"TFGTRS-4352 - Hreflang cluster on Hobbs: single en to ROW, x-default to ROW, no raw SFCC links",High,,TFGTRS-4352,"Dev environment is accessible (basic auth credentials available).","1. Open the Hobbs home page.
+2. View the page source and search for hreflang.
+3. Check each alternate link and open every URL.","There is one single ""en"" entry pointing to ROW and an x-default entry pointing to ROW. No link uses a raw SFCC domain (demandware.net). Every URL in the cluster returns 200 and has no noindex."
+"TFGTRS-4352 - Hreflang cluster on Phase Eight: de, en (EU), x-default (ROW), en-au, en-gb",High,,TFGTRS-4352,"Dev environment is accessible (basic auth credentials available).","1. Open the Phase Eight home page.
+2. View the page source and search for hreflang.
+3. Open every URL of the cluster.","The cluster contains de pointing to /de/, en pointing to /eu/, x-default pointing to ROW, en-au and en-gb. There is no duplicated ""en"", no /de/home/ entry and no raw SFCC link. Every URL returns 200."
+"TFGTRS-4352 - Hreflang cluster on Whistles: single en to ROW and x-default",High,,TFGTRS-4352,"Dev environment is accessible (basic auth credentials available).","1. Open the Whistles home page.
+2. View the page source and search for hreflang.
+3. Open every URL of the cluster.","One single ""en"" pointing to ROW and an x-default pointing to ROW. No raw SFCC link. Every URL returns 200 and is indexable."
+"TFGTRS-4352 - Phase Eight EU and DACH homepages are indexable",High,,TFGTRS-4352,"Dev environment is accessible (basic auth credentials available).","1. Open /eu/ and /de/ on Phase Eight.
+2. View the page source and search for the robots meta tag.
+3. Open a category page and a product page on each of them and repeat.","The /eu/ and /de/ homepages do not contain noindex or nofollow. Category and product pages remain indexable."
+"TFGTRS-4352 - Same hreflang cluster on category and product pages",Medium,,TFGTRS-4352,"Dev environment is accessible (basic auth credentials available).","1. For Hobbs, Phase Eight (UK, /de/, /eu/) and Whistles open a category page and a product page.
+2. Compare their hreflang entries with the ones on the home page.","The cluster is the same as on the home page: no duplicated ""en"", x-default present, no raw SFCC links."
+"TFGTRS-4352 - Canonical is unique and uses the SEO domain",Medium,,TFGTRS-4352,"Dev environment is accessible (basic auth credentials available).","1. Open a home, a category and a product page on each brand.
+2. View the page source and search for rel=""canonical"".","There is exactly one canonical per page and it uses the site domain, never a demandware.net host."
+"TFGTRS-4447 - No Constructor 400 ""item_id: Field required"" in SFCC logs after browsing - Phase Eight UK",High,,TFGTRS-4447,"Dev environment is accessible (basic auth credentials available). Access to the SFCC Business Manager log files (or Log Center) for Sites-P8-UK-Site.","1. Note the current time.
+2. On dev.phase-eight.com browse the flows that use Constructor: search with suggestions, a PLP, a PDP with recommendations, add to bag.
+3. In Business Manager open the log files and look for entries after the noted time with service constructor.http.api.
+4. Search the entries for ""item_id"".","No error or fatal entry with status 400 and message {""message"":""item_id: Field required""} appears for constructor.http.api."
+"TFGTRS-4447 - No SFCC Critical Alert (Fatal Log) for constructor.http.api after deploy",Medium,,TFGTRS-4447,"The fix is deployed to the environment being checked (staging, then production). Access to the Grafana dashboard sfcc-overview-tfg.","1. After the deploy, monitor the Grafana dashboard for 24 hours.
+2. Check whether the ""SFCC Critical Alert - Fatal Log - TFG"" alert fires for Sites-P8-UK-Site.","The alert does not fire for the Constructor integration and there are no new fatal logs from constructor.http.api."
+"TFGTRS-4447 - Constructor-powered features still work - Phase Eight",Medium,,TFGTRS-4447,"Dev environment is accessible (basic auth credentials available).","1. Search for a term and check the suggestions and the results page.
+2. Open a PLP and check that products load.
+3. Open a PDP and check the recommendations.","Search, listings and recommendations load correctly with products displayed."
+"TFGTRS-4447 - The same error does not appear on other brands",Medium,,TFGTRS-4447,"Dev environment is accessible (basic auth credentials available). Access to the SFCC log files.","1. Repeat the browsing flows on dev.hobbs.com and dev.whistles.com.
+2. Check their site logs for constructor.http.api entries with status 400.","No Constructor 400 ""item_id"" error is logged for any brand."
+"TFGTRS-4291 - Empty search results page: texts left aligned on mobile (375px)",High,,TFGTRS-4291,"Dev environment is accessible (basic auth credentials available). Phase Eight, search term with no results.","1. Open dev.phase-eight.com/search/?q=asdasdasda123&lang=en_GB at 375px width.
+2. Check the alignment of the title, the body copy and the ""Contact us"" line.","Title, body copy and sub title start at the same left margin (left aligned)."
+"TFGTRS-4291 - Empty search results page: texts left aligned on tablet (768px)",High,,TFGTRS-4291,"Dev environment is accessible (basic auth credentials available).","1. Open the same URL at 768px width.
+2. Check the alignment of the title, the body copy and the ""Contact us"" line.","Title, body copy and sub title are left aligned."
+"TFGTRS-4291 - Empty search results page: desktop (1440px) matches the design",Medium,,TFGTRS-4291,"Dev environment is accessible (basic auth credentials available).","1. Open the same URL at 1440px width.
+2. Compare it with the Figma design (node 40720-16084).","Texts are left aligned. Any difference with the design (for example heading case) is reported."
+"TFGTRS-4291 - Message, spelling hint and Contact Us link are shown",High,,TFGTRS-4291,"Dev environment is accessible (basic auth credentials available).","1. Search for a term with no results.
+2. Read the message and the help text.
+3. Click ""Contact Us"".","The message ""Sorry, there are no search results for: [term]"" is shown with the spelling hint and the Contact Us line. The link opens the contact page."
+"TFGTRS-4291 - ""Our Most Popular Products"" and quick links are displayed",Medium,,TFGTRS-4291,"Dev environment is accessible (basic auth credentials available).","1. On the empty results page scroll down.
+2. Check the product carousel and the quick links (Store Locator, Track Order, Delivery, Easy UK Returns).","The carousel shows products and every quick link is visible and works."
+"TFGTRS-4291 - Search with results is not affected",Low,,TFGTRS-4291,"Dev environment is accessible (basic auth credentials available).","1. Search for ""dress"" on Phase Eight.
+2. Check the results page.","Results are displayed as before, with products and filters."
+"TFGTRS-4567 - Donna navy dress only offers the sizes the colour has (06-20)",High,,TFGTRS-4567,"Dev environment is accessible (basic auth credentials available). Product Donna dress 10018090351 on Phase Eight.","1. Open dev.phase-eight.com/product/donna-sleeveless-maxi-dress-10018090351.html with the Navy colour selected.
+2. Check the list of sizes.","Only sizes 06 to 20 are offered. Sizes 22, 24 and 26 are not displayed."
+"TFGTRS-4567 - Black and Red colours offer their own sizes (06-26)",Medium,,TFGTRS-4567,"Dev environment is accessible (basic auth credentials available).","1. On the same product select the Black colour and check the sizes.
+2. Select the Red colour and check the sizes.","Both colours offer sizes 06 to 26."
+"TFGTRS-4567 - Selecting a size does not switch the product to another colour",High,,TFGTRS-4567,"Dev environment is accessible (basic auth credentials available).","1. For each colour (Navy, Black, Red) select an available size.
+2. Check the product name, the colour label and the main image.","The product, colour and images stay the same after selecting a size. The dress does not change to the black version."
+"TFGTRS-4567 - Changing colour updates the list of sizes",Medium,,TFGTRS-4567,"Dev environment is accessible (basic auth credentials available).","1. Select Navy and note the sizes.
+2. Select Black and then Red and note the sizes each time.","The size list matches the selected colour every time."
+"TFGTRS-4567 - Other multi-colour products only offer the sizes of the selected colour",Medium,,TFGTRS-4567,"Dev environment is accessible (basic auth credentials available).","1. Open another Phase Eight product with several colours (for example Catherine Cream Jacket).
+2. Switch colours and compare the sizes of each one.","Each colour offers only its own sizes and selecting a size does not change the colour."
+"TFGTRS-4567 - Add to bag with a size of the selected colour",High,,TFGTRS-4567,"Dev environment is accessible (basic auth credentials available).","1. On the Donna dress select Navy and an available size.
+2. Add the product to the bag and open the bag.","The bag shows the Navy colour and the selected size."
+"TFGTRS-4598 - PLP shows a product whose variant is out of stock in SFCC but still listed by Constructor - Phase Eight",High,,TFGTRS-4598,"Dev environment is accessible (basic auth credentials available). Access to Business Manager (inventory) on dev. A test product visible on a PLP. Its variant has no stock or no inventory list assigned in SFCC (isOrderable = false) while Constructor still lists it (index not updated yet).","1. In Business Manager open Merchandising > Products, find the variant and, in the Availability tab, remove the stock or the inventory list assignment. Wait about a minute (ATS cache).
+2. Check on the PDP that the variant is shown as out of stock.
+3. Open the PLP of the category that contains the product on dev.phase-eight.com.
+4. Look for the product.","The product is displayed in the PLP even though the variant is not orderable. Before the change it disappeared from the list."
+"TFGTRS-4598 - PDP of the out-of-stock product is not broken",High,,TFGTRS-4598,"Dev environment is accessible (basic auth credentials available). Access to Business Manager (inventory) on dev. The product from the previous case.","1. From the PLP open the product that has a non-orderable variant.
+2. Select the out-of-stock size.
+3. Try to add it to the bag.","The PDP loads correctly. The out-of-stock variant shows the out-of-stock / notify state and cannot be added to the bag."
+"TFGTRS-4598 - Products that are offline, not searchable, dummy or grouped masters stay hidden",Medium,,TFGTRS-4598,"Dev environment is accessible (basic auth credentials available). Access to Business Manager (inventory) on dev.","1. Take a product that is offline (or not searchable) in Business Manager but still returned by Constructor.
+2. Open the PLP that should contain it.","The product is not displayed. The number of tiles can differ from the number of Constructor results for these reasons, but not because of stock."
+"TFGTRS-4598 - Fully out-of-stock products blocked in Constructor are not displayed",Medium,,TFGTRS-4598,"Dev environment is accessible (basic auth credentials available). Product with zero stock synced to Constructor (after the inventory_count fix, TFGTRS-4484).","1. Choose a product with zero stock in all variants and wait for the Constructor sync.
+2. Open the PLP of its category.","The product is not listed because Constructor blocks zero stock items, with no SFCC stock lookup involved."
+"TFGTRS-4598 - PLP loads, filters, sorting and loading more products work - Phase Eight",Medium,,TFGTRS-4598,"Dev environment is accessible (basic auth credentials available).","1. Open a category PLP on dev.phase-eight.com.
+2. Apply a filter and a sort order.
+3. Scroll or use the pagination to load more products.","Products load, filters and sorting apply correctly and more products load without errors."
+"TFGTRS-4598 - PLP smoke on the other TFG brands (Hobbs, Whistles, Inside Story)",Medium,,TFGTRS-4598,"Dev environment is accessible (basic auth credentials available).","1. Open a category PLP on dev.hobbs.com, dev.whistles.com and dev.insidestory.com.
+2. Check the products, a filter and the sort order.","PLPs load with products and no errors on every brand."
+"TFGTRS-4602 - Mobile PDP gallery loops forward on swipe - Hobbs and Phase Eight",High,,TFGTRS-4602,"Dev environment is accessible (basic auth credentials available). Mobile device or Chrome DevTools device emulation (e.g. Pixel 7). Product with several images.","1. Open a PDP on a mobile viewport (Hobbs and Phase Eight).
+2. Accept the cookie banner.
+3. Swipe left through all the images until the last one.
+4. On the last image, swipe left once more.","The gallery returns to the first image. The behaviour is the same as on desktop, where the gallery loops."
+"TFGTRS-4602 - Mobile PDP gallery loops backward on swipe - Hobbs and Phase Eight",High,,TFGTRS-4602,"Dev environment is accessible (basic auth credentials available). Mobile device or Chrome DevTools device emulation (e.g. Pixel 7). Product with several images.","1. Open a PDP on a mobile viewport (Hobbs and Phase Eight).
+2. Accept the cookie banner.
+3. On the first image, swipe right.","The gallery goes to the last image."
+"TFGTRS-4602 - Mobile PDP gallery loops forward on swipe - Whistles",High,,TFGTRS-4602,"Dev environment is accessible (basic auth credentials available). Mobile device or Chrome DevTools device emulation. Product with several images. Whistles uses a different gallery component (pdp-gallery).","1. Open a Whistles PDP on a mobile viewport.
+2. Accept the cookie banner.
+3. Swipe left through all the images until the last one.
+4. On the last image, swipe left once more.","The gallery returns to the first image instead of staying on the last one."
+"TFGTRS-4602 - Mobile PDP gallery loops backward on swipe - Whistles",Medium,,TFGTRS-4602,"Dev environment is accessible (basic auth credentials available). Mobile device or Chrome DevTools device emulation. Known observation on dev: swiping right on the first image jumped to a middle image instead of the last one.","1. Open a Whistles PDP on a mobile viewport.
+2. Accept the cookie banner.
+3. On the first image, swipe right.
+4. Optionally check the scroll position in the console: document.querySelector('.pdp-gallery__viewport').scrollLeft.","The gallery goes to the last image (scrollLeft close to the maximum), not to a middle image."
+"TFGTRS-4602 - Gallery arrows (chevrons) still work and loop",Medium,,TFGTRS-4602,"Dev environment is accessible (basic auth credentials available). Mobile viewport and desktop viewport.","1. Open a PDP of each brand.
+2. Click the next arrow until the last image, then once more.
+3. On the first image, click the previous arrow.","The arrows keep working and loop in both directions, as before the change."
+"TFGTRS-4602 - Desktop gallery and single-image products are not affected",Low,,TFGTRS-4602,"Dev environment is accessible (basic auth credentials available).","1. On desktop, open a PDP of each brand and browse the gallery with the arrows and the thumbnails.
+2. Open a product with a single image on mobile and try to swipe.","The desktop gallery behaves as before. A single image does not loop, flicker or throw console errors."
+"TFGTRS-4303 - Registration with every allowed title - Hobbs, Phase Eight, Whistles, Inside Story",High,,TFGTRS-4303,"Dev environment is accessible (basic auth credentials available). Use a new email alias for each registration (e.g. name+qa1@domain). Allowed titles: Miss, Mrs, Ms, Mr, Mx, Dr, Prof.","1. Open /account/register/ on each brand.
+2. Select a title from the dropdown and fill in the rest of the form.
+3. Submit the registration.
+4. Repeat with a different allowed title.","The account is created and the user lands on the account area (Inside Story has no My Details page on dev)."
+"TFGTRS-4303 - Edit title in My Details - Hobbs, Phase Eight, Whistles",High,,TFGTRS-4303,"Dev environment is accessible (basic auth credentials available). Registered test account on each brand. Whistles posts to Account-SaveDetails; Hobbs and Phase Eight to Account-SaveProfile.","1. Log in and open /account/details/.
+2. Change the title to another allowed value.
+3. Enter the current password and save.
+4. Reload the page.","The details are saved and the new title is selected after reloading."
+"TFGTRS-4303 - Title outside the allowed list is rejected on save",High,,TFGTRS-4303,"Dev environment is accessible (basic auth credentials available). Logged-in test account. A value outside the list can be sent by adding an option to the dropdown with DevTools, or by sending the request directly.","1. Open /account/details/.
+2. Add an option with value ""Sir"" to the title dropdown (DevTools) and select it.
+3. Enter the current password and save.
+4. Reload the page.","The save is rejected with ""Please select a valid title."" and the previous title is kept."
+"TFGTRS-4303 - Title outside the allowed list is rejected on registration",High,,TFGTRS-4303,"Dev environment is accessible (basic auth credentials available). New email alias.","1. Open /account/register/.
+2. Add an option with value ""Sir"" to the title dropdown (DevTools) and select it.
+3. Fill in the rest of the form and submit.","The registration is rejected with ""Please select a valid title."" and no account is created."
+"TFGTRS-4303 - Script payload in the title is not stored or executed",High,,TFGTRS-4303,"Dev environment is accessible (basic auth credentials available). Cloudflare may block obvious script payloads with a 403 before they reach the application, so the application-level validation may need a developer to confirm it with a payload that gets through.","1. Try to save a title with a harmless HTML payload, for example <b>x</b>, via DevTools or a direct request.
+2. Check the response and the account, checkout and address pages.","The value is rejected. If it is ever stored, it is shown as plain text and never rendered or executed."
+"TFGTRS-4303 - Wrong current password: error and nothing is saved - Hobbs, Phase Eight, Whistles",High,,TFGTRS-4303,"Dev environment is accessible (basic auth credentials available). Logged-in test account.","1. Open /account/details/.
+2. Change the title and enter a wrong current password.
+3. Save.
+4. Reload the page and check that the password field is empty.","The error ""Does not match the current password"" is shown and the change is not saved. After reloading, the password field is empty."
+"TFGTRS-4303 - Password is not exposed in the page - Hobbs and Phase Eight",High,,TFGTRS-4303,"Dev environment is accessible (basic auth credentials available). Logged-in test account. Chrome DevTools.","1. Open /account/details/ and view the page source.
+2. Search for the account password in the source, the console, local storage, session storage and cookies.
+3. Repeat after a failed save.","The password is not present in the HTML, scripts or browser storage."
+"TFGTRS-4303 - Title validation on Inside Story (no My Details page on dev)",Medium,,TFGTRS-4303,"Dev environment is accessible (basic auth credentials available). Logged-in test account. /account/details/ returns 404 on Inside Story dev, so the checks use direct requests to Account-SaveProfile.","1. Send Account-SaveProfile with title ""Sir"".
+2. Send it with a valid title.
+3. Send it with a wrong current password.
+4. Send a registration with title ""Sir"".","""Sir"" is rejected with ""Please select a valid title."" in both cases, the valid title is saved, and the wrong password returns ""Does not match the current password""."
+"TFGTRS-4303 - Title validation on Damsel in a Dress",Medium,,TFGTRS-4303,"Dev URL of Damsel in a Dress needed. The brand is in the ticket scope but was not tested yet.","1. Repeat the registration, edit and invalid-title checks on Damsel in a Dress.","The behaviour is the same as on the other brands."
+"TFGTRS-4303 - Title is shown correctly in the account, addresses and checkout",Medium,,TFGTRS-4303,"Dev environment is accessible (basic auth credentials available). Test account with a saved title.","1. Log in and check the account area and saved addresses.
+2. Start a checkout and check the delivery address summary.","The title is displayed as plain text (e.g. Dr, Ms) and the pages are not broken."
+"TFGTRS-4303 - Already stored invalid titles no longer run",High,,TFGTRS-4303,"Needs test data seeded by a developer: a customer with an invalid or HTML title stored before the fix.","1. Log in as that customer.
+2. Open the account area, the addresses and the checkout.","The stored value is shown as text (or ignored) and is not executed. The pages work."
+"TFGTRS-4303 - Production cleanup job (developer task, per brand)",High,,TFGTRS-4303,"Run by a developer from Business Manager once per brand, after the QA validation. Cannot be tested in dev by QA alone.","1. Run the cleanup in report-only mode and note how many customers have an invalid title.
+2. Review the report and run it in apply mode.
+3. Run the report again.","The second report shows 0 customers with an invalid title."
+"TFGTRS-4604 - Custom preferences are renamed and sale vs full price controls are clearly separated",High,,TFGTRS-4604,"Business Manager access on dev. The exact preference names and pricebooks per brand are pending confirmation from the developer.","1. Open the Custom Preferences group that controls the automated £ / % badges.
+2. Check the names of the preferences.","There are separate controls for sale / hard markdown products and for full price products, with names that make the difference clear."
+"TFGTRS-4604 - Full price badge switched off: no badge on full price promoted products",High,,TFGTRS-4604,"Full price badge control set to off. A full price product (list price in the full price pricebook, no lower price in the hard markdown pricebook) with a layered promotion.","1. Open the PLP that contains the product.
+2. Check the product tile.","No automated £ or % badge is shown on the full price product."
+"TFGTRS-4604 - Full price badge on, percentage mode: ""20% Off"" for a 20% off all full price promotion",High,,TFGTRS-4604,"Full price badge control on and set to % off. A promotion ""20% off all full price"" active on the brand.","1. Open a PLP with full price products in the promotion.
+2. Check the badge.","The badge shows ""20% Off""."
+"TFGTRS-4604 - Full price badge switched to £ off",High,,TFGTRS-4604,"Full price badge control on and set to £ off. A line-list promotion (e.g. up to £100 off coats) where each product gets a different discount.","1. Open the PLP.
+2. Check the badge of each promoted product.","Each badge shows the £ amount calculated from the original full price minus the promotion price (e.g. £20 off, £40 off)."
+"TFGTRS-4604 - Promotion using a pricebook: difference against the original list price",Medium,,TFGTRS-4604,"A promotion that uses a pricebook for the promotional price.","1. Open the PLP.
+2. Compare the badge with the full price list price and the promotion price.","The badge is calculated from the difference between the original full price list price and the promotion price."
+"TFGTRS-4604 - Different promotion types",Medium,,TFGTRS-4604,"Promotions of different types available on dev (% off, amount off, fixed price).","1. For each type of promotion, check the badge on the PLP.","The badge is correct for each supported type, or absent when the type is not supported."
+"TFGTRS-4604 - Sale badges on the PLP still look as before the change - Hobbs and Phase Eight",High,,TFGTRS-4604,"Dev environment is accessible (basic auth credentials available). Requested by dev as an interim regression check, before the full-price preferences/pricebooks are confirmed. No Business Manager change needed for this case.","1. Open the Sale PLP on Hobbs.
+2. Open the Sale PLP on Phase Eight.
+3. Check the % or £ off badge on a sample of sale products on each brand.","The sale badges show the same % or £ off as before this ticket, with no visual regression or missing badges."
+"TFGTRS-4604 - Sale / hard markdown badges are not affected by the new full price controls",High,,TFGTRS-4604,"Business Manager access on dev. Sale products with a lower price in the hard markdown pricebook. Needs the full price preferences confirmed by dev.","1. Change the full price controls (on / off, % / £).
+2. Check the badges on sale products.
+3. Change the sale controls and check the full price products.","Sale badges (e.g. 40% off, 50% off) keep working as before. Sale and full price controls are independent of each other."
+"TFGTRS-4604 - Full price products without a promotion show no badge",High,,TFGTRS-4604,"Full price product with no promotion. The earlier bug showed £ and % badges on full price products.","1. Open the PLP and check full price products without a promotion.","No automated badge is shown."
+"TFGTRS-4604 - Product with a lower price in the hard markdown pricebook is treated as sale",Medium,,TFGTRS-4604,"Product with a price in the hard markdown pricebook and a layered promotion.","1. Open the PLP and check the badge.","The product follows the sale badge controls, not the full price controls."
+"TFGTRS-4604 - Badges behave the same on Hobbs and Phase Eight",Medium,,TFGTRS-4604,"Per dev, this ticket only affects Hobbs and Phase Eight. Whistles and Inside Story are out of scope.","1. Repeat the main checks on Hobbs.
+2. Repeat the main checks on Phase Eight.","The behaviour is the same on both brands."
+"TFGTRS-4592 - No payment method selected: order is rejected with the existing validation message - HB-UK, P8-UK, WH-UK",High,,TFGTRS-4592,"Dev environment is accessible (basic auth credentials available). Cookies accepted. A product in the bag. The fix stops the Adyen form processor from throwing and spamming the error log.","1. Go through the checkout up to the payment step.
+2. Do not select any payment method.
+3. Click Place order.","The order is not placed. The existing validation message is shown (Hobbs: ""Please Select A Payment method"") and the user stays on the checkout without errors."
+"TFGTRS-4592 - Business Manager logs after placing an order with no payment method",High,,TFGTRS-4592,"Business Manager access to the Development logs on dev. Run immediately after the previous test case so the log entries are easy to identify.","1. Open custom-Adyen_error-*.log.
+2. Open custom-Adyen_warn-*.log.","The error log has no new entries for the submission. The warn log has one new entry containing ""no payment method selected""."
+"TFGTRS-4592 - Adyen card component with valid state data places the order - HB-UK, P8-UK, WH-UK",High,,TFGTRS-4592,"Dev environment is accessible (basic auth credentials available). Adyen test card only, never in production.","1. Go through the checkout up to the payment step.
+2. Select Credit / Debit Card and enter the Adyen test card.
+3. Click Place order.","The payment is authorised and the order confirmation page is shown, as before the fix."
+"TFGTRS-4592 - Info log still has the State Data entry after a card payment",Medium,,TFGTRS-4592,"Business Manager access to the Development logs on dev. Run right after a card order.","1. Open custom-Adyen_info-*.log.","The entry ""State Data - Append Payment Details"" is still written."
+"TFGTRS-4592 - Card method selected with empty or incomplete card data",Medium,,TFGTRS-4592,"Dev environment is accessible (basic auth credentials available).","1. Go through the checkout up to the payment step.
+2. Select Credit / Debit Card but leave the card fields empty (or incomplete).
+3. Click Place order.
+4. Check the Adyen error log.","The order is rejected with a validation message and the error log is not flooded with ""Cannot read property paymentMethod from null"" or ""Failed to parse payment form stateData""."
+"TFGTRS-4592 - Non-Adyen payment method is not affected (PayPal) - manual",Medium,,TFGTRS-4592,"Dev environment is accessible (basic auth credentials available). PayPal sandbox account. Not covered by automation.","1. Go through the checkout and pay with PayPal (sandbox).","The checkout works as before. The Adyen form processor is skipped and there are no new entries in the Adyen logs."
+"TFGTRS-4338 - PDP out of stock: Notify me OFF shows a disabled OUT OF STOCK button - Hobbs",High,,TFGTRS-4338,"Dev environment is accessible (basic auth credentials available). A multi-size product with all sizes out of stock and Notify me OFF (for example Amaia Shirt Dress). User has access to dev.hobbs.com.","1. Open the out of stock PDP.
+2. Check the OUT OF STOCK label and the breadcrumb.
+3. Check the in-page CTA and the sticky CTA.
+4. Try to click both.
+5. Repeat on mobile (375px) and desktop (1280px).","The OUT OF STOCK label is 16px on mobile and 20px on desktop, colour #1D1D1D, weight 600. The breadcrumb is kept. In-page and sticky CTAs read OUT OF STOCK and are not clickable."
+"TFGTRS-4338 - PDP out of stock: Notify me ON mobile sticky opens the size slide-up - Hobbs",High,,TFGTRS-4338,"Dev environment is accessible (basic auth credentials available). A multi-size product with all sizes out of stock and Notify me ON (for example Pink Pemberton Dress, 0126-5531-1185L00-BLUSH-PINK). The Petite Tia (0125-5152-9045L04-CREAM-MULTI) does not render sizes on dev, do not use it. 375px viewport.","1. Open the out of stock PDP at 375px width.
+2. Scroll until the sticky bar appears.
+3. Tap the sticky NOTIFY ME button.
+4. Check the size slide-up and the sizes.
+5. Select a size.
+6. Observe the Notify me panel.","The sticky NOTIFY ME opens the size slide-up with the product name, price, colour and sizes (shown as out of stock). 'PLEASE SELECT A SIZE' appears once below the sizes and is not repeated inside the size cells. Selecting a size shows the OUT OF STOCK copy and the Notify me panel slides up from the bottom."
+"TFGTRS-4338 - PDP out of stock: Notify me ON desktop sticky anchors to the sizes - Hobbs",High,,TFGTRS-4338,"Dev environment is accessible (basic auth credentials available). A multi-size product with all sizes out of stock and Notify me ON (for example Pink Pemberton Dress). 1280px viewport.","1. Open the out of stock PDP at 1280px width.
+2. Scroll until the sticky bar appears.
+3. Check the sticky bar content.
+4. Click the sticky NOTIFY ME.","The sticky bar shows product name, price and NOTIFY ME. Clicking it scrolls to the exposed sizes in the page (Figma [1 Desktop]) and does not open the email panel directly."
+"TFGTRS-4338 - PDP out of stock: in-page NOTIFY ME without a size asks to select a size - Hobbs",High,,TFGTRS-4338,"Dev environment is accessible (basic auth credentials available). A multi-size product with all sizes out of stock and Notify me ON (for example Pink Pemberton Dress). 1280px viewport.","1. Open the out of stock PDP at 1280px width.
+2. Without selecting a size, click the in-page NOTIFY ME.","'PLEASE SELECT A SIZE' appears below the sizes (Figma [4C]). It is not shown before the click. The email panel does not open."
+"TFGTRS-4338 - PDP out of stock: Notify me email panel button and validation - Hobbs",High,,TFGTRS-4338,"Dev environment is accessible (basic auth credentials available). A product with Notify me ON (for example Pink Pemberton Dress). Known issue pending a code fix, confirmed by dev.","1. Open the out of stock PDP and select an out of stock size.
+2. Open the Notify me panel.
+3. Check the NOTIFY ME button with an empty email.
+4. Enter an email in an invalid format (for example abc@@@x) and try to submit.
+5. Observe the error and the panel height.
+6. Enter a valid email.","The NOTIFY ME button is disabled only while the email field is empty. With an invalid email the button is enabled, the submit shows the red message ""Please enter a valid E-Mail address"" under the field, and the panel height does not change when the message appears (Figma [7]). With a valid email the request is sent. CURRENT BEHAVIOUR: the button is disabled with an invalid email and the message never appears."
+"TFGTRS-4338 - PDP out of stock: Notify me email panel does not overflow on mobile - Hobbs",High,,TFGTRS-4338,"Dev environment is accessible (basic auth credentials available). A product with Notify me ON (for example Pink Pemberton Dress). Known issue pending a code fix, confirmed by dev. Chrome DevTools responsive mode 375x630, and a real phone if available.","1. Open the out of stock PDP at 375x630.
+2. Open the Notify me email panel (from the sticky bar and from the in-page button).
+3. Check that the whole panel fits the screen width.","The intro text, the EMAIL field and the NOTIFY ME button fit inside the screen width, with no horizontal scrolling needed. CURRENT BEHAVIOUR: the text is cut off and the field and button go beyond the right edge."
+"TFGTRS-4338 - PDP out of stock: Sticky bar styling - Hobbs",Medium,,TFGTRS-4338,"Dev environment is accessible (basic auth credentials available). Out of stock products with Notify me ON and OFF.","1. Open the out of stock PDP (Notify me OFF, for example Amaia Shirt Dress) at 375px, scroll and check the sticky bar border and shadow.
+2. Open the same PDP at 1280px and check the sticky bar background and top line.
+3. Compare with Figma.","Mobile sticky has a thin line on top and no drop shadow (Figma [1-M]). Desktop sticky has an opaque white background with a grey line above (Figma [0 Desktop])."

@@ -1,0 +1,19 @@
+Title,Priority,Template,Tags,Pre-Condition,Steps,Expected
+"TFGTRS-4609 - Console: no InvalidStateError (responseText) after accepting cookies - all brands and regions (Chrome)",High,,TFGTRS-4609,"Dev environment is accessible (basic auth credentials available). Chrome with DevTools available.","1. Open the home page of each site and region: Hobbs (/, /au/, /us/, /row/), Phase Eight (/, /eu/, /de/, /au/, /row/), Whistles (/, /au/, /us/, /row/), Inside Story (/).
+2. Open the DevTools console.
+3. Accept the cookie banner.
+4. Wait about 10 seconds and scroll the page a little.
+5. Check the console error logs.","No ""Uncaught InvalidStateError: Failed to read the 'responseText' property from 'XMLHttpRequest'... (was 'json')"" error appears on any site or region."
+"TFGTRS-4609 - Console: no InvalidStateError in Safari",High,,TFGTRS-4609,"Dev environment is accessible (basic auth credentials available). Safari (desktop or iOS) with the web inspector enabled.","1. Open the home page of Hobbs, Phase Eight and Whistles in Safari.
+2. Open the web inspector console.
+3. Accept the cookie banner.
+4. Wait about 10 seconds and check the console.","The error ""InvalidStateError: The object is in an invalid state."" does not appear."
+"TFGTRS-4609 - Console: no InvalidStateError across a full journey - Hobbs and Phase Eight",Medium,,TFGTRS-4609,"Dev environment is accessible (basic auth credentials available).","1. Open the console.
+2. Accept cookies.
+3. Type a term in the search box to show suggestions.
+4. Open a PLP and a PDP, select a size and add the product to the bag.
+5. Open the bag and start the checkout.
+6. Check the console after each step.","No InvalidStateError / responseText error is logged at any step."
+"TFGTRS-4609 - Analytics tracking still works after the fix",High,,TFGTRS-4609,"Dev environment is accessible (basic auth credentials available). Network tab or Tag Assistant available.","1. Open a product page and add a product to the bag.
+2. Open the bag.
+3. In the console run window.dataLayer and check the events; check the Network tab for Google Analytics and Contentsquare requests.","Analytics requests are sent (GA and Contentsquare) and dataLayer contains the expected events (for example view_cart). Nothing is missing compared with production."

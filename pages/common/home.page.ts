@@ -61,7 +61,16 @@ export class HomePage extends BasePage {
       await searchTrigger.click({ force: true });
     } catch { /* searchbox ya visible, no necesita trigger */ }
 
-    await this.searchBox.waitFor({ state: 'visible' });
+    // El welcome mat ("15% off") puede abrirse tarde, después del dismiss inicial, y mientras está
+    // abierto el resto de la página queda fuera del árbol de accesibilidad, así que
+    // getByRole('searchbox') no encuentra nada. Si no aparece rápido, se cierran los popups
+    // y se reintenta (causa de los fallos intermitentes "search returns product results").
+    try {
+      await this.searchBox.waitFor({ state: 'visible', timeout: 10000 });
+    } catch {
+      await this.dismissModalsIfPresent();
+      await this.searchBox.waitFor({ state: 'visible' });
+    }
     await this.searchBox.click({ force: true });
     await this.searchBox.fill(term);
     await this.searchBox.press('Enter');

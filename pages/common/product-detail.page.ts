@@ -51,48 +51,56 @@ export class ProductDetailPage extends BasePage {
    * Usa force:true para evitar que el Globale overlay bloquee el click sin modificar el DOM.
    */
   async selectFirstAvailableSize(): Promise<void> {
-    const firstSize = this.sizeButtons.first();
     try {
-      await firstSize.waitFor({ state: 'visible', timeout: 30000 });
-      // Intentar click en el enlace/botón interno antes que en el <li> directamente,
-      // para asegurar que los event handlers de SFCC se disparen correctamente.
-      const innerLink = firstSize.locator('a, button').first();
-      const hasInner = await innerLink.count() > 0;
-      if (hasInner) {
-        await innerLink.click({ force: true });
-      } else {
-        await firstSize.click({ force: true });
-      }
-      // Esperar a que SFCC procese la selección via AJAX (actualiza data-pid del botón ATC).
-      // Sin este wait, el ATC puede enviarse con el PID maestro → "Please select a size".
-      await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+      await this.sizeButtons.first().waitFor({ state: 'visible', timeout: 30000 });
     } catch {
       // Sin selector de talla (producto de talla única o artículo de hogar) — no es necesario
+      return;
+    }
+
+    // Una talla puede figurar como disponible en el markup y aun así estar sin stock: la PDP
+    // muestra "Notify Me" en vez de "Add to Bag" (visto en Hobbs prod, Safari, talla 6). Se prueba
+    // cada talla hasta que aparezca un botón de añadir al carrito; la selección queda en la
+    // primera que lo tiene.
+    const total = Math.min(await this.sizeButtons.count(), 8);
+    for (let i = 0; i < total; i++) {
+      const size = this.sizeButtons.nth(i);
+
+      // Confirmado con un trace de Playwright (Phase Eight, stage): el click en Add to Bag a
+      // veces se dispara ANTES de que el data-pid del botón se actualice al PID de la variante,
+      // y el click no llega a generar ningún request al servidor (ni éxito ni "select a size" —
+      // simplemente no pasa nada). networkidle no es suficiente si la actualización del PID no
+      // depende de una request de red. Se captura el PID maestro antes del click y se espera
+      // explícitamente a que cambie.
+      const pidBefore = await this.addToCartButton.getAttribute('data-pid', { timeout: 3000 }).catch(() => null);
+
+      // Intentar click en el enlace/botón interno antes que en el <li> directamente,
+      // para asegurar que los event handlers de SFCC se disparen correctamente.
+      const innerLink = size.locator('a, button').first();
+      const hasInner = await innerLink.count() > 0;
+      await (hasInner ? innerLink : size).click({ force: true }).catch(() => {});
+
+      if (pidBefore) {
+        await this.page.waitForFunction(
+          ({ sel, before }) => {
+            const el = document.querySelector(sel);
+            return !!el && el.getAttribute('data-pid') !== before;
+          },
+          { sel: '.product-detail__add-to-cart button.add-to-cart, .product-detail__add-to-cart button.add-to-bag, button.add-to-cart, button.add-to-bag', before: pidBefore },
+          { timeout: 8000 },
+        ).catch(() => {});
+      }
+      // Esperar a que SFCC termine de procesar la selección (algunos sitios sí disparan una
+      // request de red además de actualizar el data-pid).
+      await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+
+      if (await this.addToCartButton.isVisible().catch(() => false)) return;
     }
   }
 
   /** Añade el producto al carrito y navega a la cesta. */
   async addToCartAndGoToBasket(): Promise<BasketPage> {
     await this.addToCartButton.waitFor({ state: 'visible', timeout: 30000 });
-
-    // Estrategia Globale: si GUARDAR fue clickeado en dismissModalsIfPresent(), el cookie
-    // GlobalE_Data={countryISO:"GB"} tiene firma válida de Globale. Al limpiar el dwsid
-    // (sesión de Demandware creada desde IP Argentina), la próxima request de ATC inicia
-    // una nueva sesión SFCC que leerá el cookie GB firmado y enrutará al carrito UK.
-    try {
-      const allCookies = await this.page.context().cookies();
-      const globaleCookies = allCookies.filter(c =>
-        c.name.toLowerCase().startsWith('globale') ||
-        c.name.toLowerCase().startsWith('global_e') ||
-        c.name.toLowerCase().startsWith('ge_')
-      );
-      // Limpiar SOLO los cookies de sesión de Demandware (no los de Globale)
-      const nonDwCookies = allCookies.filter(c => !c.name.toLowerCase().startsWith('dw'));
-      await this.page.context().clearCookies();
-      if (nonDwCookies.length > 0) {
-        await this.page.context().addCookies(nonDwCookies);
-      }
-    } catch { /* ignorar si la limpieza falla */ }
 
     // Capturar links del minicart ANTES del click ATC para saber cuáles son "nuevos".
     // Globale puede tener links pre-cargados que no son el carrito real del ATC.
@@ -141,10 +149,13 @@ export class ProductDetailPage extends BasePage {
       while (!stopDismisser) {
         const popup = this.page.locator('#globalePopupWrapper').first();
         if (await popup.isVisible({ timeout: 600 }).catch(() => false)) {
-          const saveBtn = popup.locator('a, button').filter({ hasText: /guardar|save/i }).first();
+          // GUARDAR es <input type="button" value="Guardar"> — su etiqueta vive en
+          // `value`, no en textContent, así que necesita getByRole (no locator+hasText).
+          const saveBtn = popup.getByRole('button', { name: /guardar|save/i }).first();
           if (await saveBtn.isVisible({ timeout: 500 }).catch(() => false)) {
             await saveBtn.evaluate(el => (el as HTMLElement).click()).catch(() => {});
           } else {
+            // CANCELAR es un <a> sin href/rol — el texto sí vive en textContent.
             const cancel = popup.locator('a, button').filter({ hasText: /cancelar|cancel/i }).first();
             await cancel.evaluate(el => (el as HTMLElement).click()).catch(() => {});
           }

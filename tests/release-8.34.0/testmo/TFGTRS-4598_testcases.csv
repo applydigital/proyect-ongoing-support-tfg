@@ -1,0 +1,17 @@
+Title,Priority,Template,Tags,Pre-Condition,Steps,Expected
+"TFGTRS-4598 - PLP shows a product whose variant is out of stock in SFCC but still listed by Constructor - Phase Eight",High,,TFGTRS-4598,"Dev environment is accessible (basic auth credentials available). Access to Business Manager (inventory) on dev. A test product visible on a PLP. Its variant has no stock or no inventory list assigned in SFCC (isOrderable = false) while Constructor still lists it (index not updated yet).","1. In Business Manager open Merchandising > Products, find the variant and, in the Availability tab, remove the stock or the inventory list assignment. Wait about a minute (ATS cache).
+2. Check on the PDP that the variant is shown as out of stock.
+3. Open the PLP of the category that contains the product on dev.phase-eight.com.
+4. Look for the product.","The product is displayed in the PLP even though the variant is not orderable. Before the change it disappeared from the list."
+"TFGTRS-4598 - PDP of the out-of-stock product is not broken",High,,TFGTRS-4598,"Dev environment is accessible (basic auth credentials available). Access to Business Manager (inventory) on dev. The product from the previous case.","1. From the PLP open the product that has a non-orderable variant.
+2. Select the out-of-stock size.
+3. Try to add it to the bag.","The PDP loads correctly. The out-of-stock variant shows the out-of-stock / notify state and cannot be added to the bag."
+"TFGTRS-4598 - Products that are offline, not searchable, dummy or grouped masters stay hidden",Medium,,TFGTRS-4598,"Dev environment is accessible (basic auth credentials available). Access to Business Manager (inventory) on dev.","1. Take a product that is offline (or not searchable) in Business Manager but still returned by Constructor.
+2. Open the PLP that should contain it.","The product is not displayed. The number of tiles can differ from the number of Constructor results for these reasons, but not because of stock."
+"TFGTRS-4598 - Fully out-of-stock products blocked in Constructor are not displayed",Medium,,TFGTRS-4598,"Dev environment is accessible (basic auth credentials available). Product with zero stock synced to Constructor (after the inventory_count fix, TFGTRS-4484).","1. Choose a product with zero stock in all variants and wait for the Constructor sync.
+2. Open the PLP of its category.","The product is not listed because Constructor blocks zero stock items, with no SFCC stock lookup involved."
+"TFGTRS-4598 - PLP loads, filters, sorting and loading more products work - Phase Eight",Medium,,TFGTRS-4598,"Dev environment is accessible (basic auth credentials available).","1. Open a category PLP on dev.phase-eight.com.
+2. Apply a filter and a sort order.
+3. Scroll or use the pagination to load more products.","Products load, filters and sorting apply correctly and more products load without errors."
+"TFGTRS-4598 - PLP smoke on the other TFG brands (Hobbs, Whistles, Inside Story)",Medium,,TFGTRS-4598,"Dev environment is accessible (basic auth credentials available).","1. Open a category PLP on dev.hobbs.com, dev.whistles.com and dev.insidestory.com.
+2. Check the products, a filter and the sort order.","PLPs load with products and no errors on every brand."

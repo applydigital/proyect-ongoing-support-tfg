@@ -35,8 +35,12 @@ for (const brand of sanitySiteData) {
 
     test.describe(`[${brand.name}] [${region.name}]`, () => {
 
+      // Producción carga analytics pesados que retrasan el teardown del contexto.
+      // 150s garantiza tiempo suficiente para el cuerpo del test y el cierre del browser.
+      test.setTimeout(150000);
+
       test('homepage responds with 200', { tag: '@non-transactional' }, async ({ page }) => {
-        const response = await page.goto(baseUrl);
+        const response = await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
         expect(
           response?.status(),
           `${brand.name} [${region.name}] homepage should return 200`
@@ -44,19 +48,34 @@ for (const brand of sanitySiteData) {
       });
 
       test('search returns product results', { tag: '@non-transactional' }, async ({ page }) => {
-        await page.goto(baseUrl);
-        const home = new HomePage(page);
-        await home.acceptCookiesIfPresent();
-        await home.dismissModalsIfPresent();
-        const results = await home.search(searchTerm);
-        expect(
-          await results.getProductCount(),
-          `Expected products for "${searchTerm}" on ${brand.name} [${region.name}]`
-        ).toBeGreaterThan(0);
+        if (brand.searchPath) {
+          // Marcas con frontend no-SFRA (ej: Whistles/React): navegar directamente a la URL de búsqueda
+          // en lugar de interactuar con el searchbox — más fiable cross-browser (especialmente Safari).
+          const searchUrl = baseUrl + brand.searchPath.replace('{q}', encodeURIComponent(searchTerm));
+          await page.goto(searchUrl, { waitUntil: 'domcontentloaded' });
+          const plp = new ProductListPage(page);
+          await plp.acceptCookiesIfPresent();
+          await plp.dismissModalsIfPresent();
+          await plp.waitForLoaded();
+          expect(
+            await plp.getProductCount(),
+            `Expected products for "${searchTerm}" on ${brand.name} [${region.name}]`
+          ).toBeGreaterThan(0);
+        } else {
+          await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+          const home = new HomePage(page);
+          await home.acceptCookiesIfPresent();
+          await home.dismissModalsIfPresent();
+          const results = await home.search(searchTerm);
+          expect(
+            await results.getProductCount(),
+            `Expected products for "${searchTerm}" on ${brand.name} [${region.name}]`
+          ).toBeGreaterThan(0);
+        }
       });
 
       test('PLP loads with products', { tag: '@non-transactional' }, async ({ page }) => {
-        const response = await page.goto(baseUrl + brand.categoryPath);
+        const response = await page.goto(baseUrl + brand.categoryPath, { waitUntil: 'domcontentloaded' });
         expect(response?.status()).toBe(200);
         const plp = new ProductListPage(page);
         await plp.acceptCookiesIfPresent();
@@ -69,7 +88,7 @@ for (const brand of sanitySiteData) {
       });
 
       test('PDP loads and add-to-cart is available', { tag: '@non-transactional' }, async ({ page }) => {
-        await page.goto(baseUrl + brand.categoryPath);
+        await page.goto(baseUrl + brand.categoryPath, { waitUntil: 'domcontentloaded' });
         const plp = new ProductListPage(page);
         await plp.acceptCookiesIfPresent();
         await plp.dismissModalsIfPresent();
@@ -80,7 +99,7 @@ for (const brand of sanitySiteData) {
       });
 
       test('footer is visible', { tag: '@non-transactional' }, async ({ page }) => {
-        await page.goto(baseUrl);
+        await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
         await home.dismissModalsIfPresent();

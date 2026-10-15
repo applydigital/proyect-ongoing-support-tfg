@@ -93,13 +93,24 @@ export default defineConfig({
         baseURL: process.env.INSIDE_STORY_BASE_URL,
       },
     },
-    // ─── Sanity — health checks cross-site multi-región (Chrome · Firefox · Safari) ─
+    // ─── Sanity — health checks cross-site multi-región (Chrome · Edge · Firefox · Safari) ─
     {
       name: 'sanity-chrome',
       testMatch: 'sanity/**/*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
         httpCredentials,
+        launchOptions: { args: ['--disable-blink-features=AutomationControlled'] },
+      },
+    },
+    {
+      name: 'sanity-edge',
+      testMatch: 'sanity/**/*.spec.ts',
+      use: {
+        ...devices['Desktop Edge'],
+        channel: 'msedge',
+        httpCredentials,
+        launchOptions: { args: ['--disable-blink-features=AutomationControlled'] },
       },
     },
     {
@@ -108,6 +119,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Firefox'],
         httpCredentials,
+        launchOptions: { args: ['-no-remote'] },
       },
     },
     {
@@ -141,7 +153,6 @@ export default defineConfig({
       testMatch: 'regression/production-*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
-        // Evita que Globale detecte Playwright como bot y bloquee el seteo de cookies.
         launchOptions: {
           args: ['--disable-blink-features=AutomationControlled'],
         },
@@ -152,6 +163,17 @@ export default defineConfig({
       testMatch: 'regression/production-*.spec.ts',
       use: {
         ...devices['Desktop Safari'],
+      },
+    },
+    {
+      name: 'regression-prod-edge',
+      testMatch: 'regression/production-*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        channel: 'msedge',
+        launchOptions: {
+          args: ['--disable-blink-features=AutomationControlled'],
+        },
       },
     },
     // ─── Manage Service — hotfix and release folders ──────────────────────────

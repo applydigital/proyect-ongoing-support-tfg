@@ -63,6 +63,10 @@ for (const brand of dachBrands) {
     });
 
     test('full checkout with payment', { tag: '@transactional' }, async ({ page }) => {
+      // El flujo completo (popups, widget de direcciones, Adyen) en staging supera los 90s por
+      // defecto. test.slow() (x3 = 270s) no alcanzaba en días de stage lento — confirmado:
+      // 5 de 6 regiones dieron timeout justo ahí. Se fija un valor explícito más amplio.
+      test.setTimeout(420_000);
       await page.goto(baseUrl);
       const home = new HomePage(page);
       await home.acceptCookiesIfPresent();
@@ -82,7 +86,8 @@ for (const brand of dachBrands) {
       await checkout.fillAdyenCard(adyenTestCard);
       await checkout.placeOrder();
 
-      await expect(page).toHaveURL(/order-confirmation|checkout\/receipt|thank-you|bestellbestaetigung/i, { timeout: 30000 });
+      // En Hobbs/Phase Eight la confirmación es /secure/checkout/confirmation/?ID=...
+      await expect(page).toHaveURL(/order-confirmation|checkout\/confirmation|checkout\/receipt|thank-you|bestellbestaetigung/i, { timeout: 30000 });
     });
 
   });

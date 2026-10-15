@@ -67,6 +67,17 @@ for (const brand of regressionBrands) {
       });
 
       test('full checkout with payment', { tag: '@transactional' }, async ({ page }) => {
+        // ROW no pasa por el checkout nativo SFCC/Adyen: usa el checkout internacional de
+        // GlobalE (otro dominio, otra marca visual, formulario de email propio, sin Adyen).
+        // Confirmado con captura en staging el 06/10 — no es timing, es una página distinta que
+        // CheckoutPage no soporta. Hasta que se automatice ese flujo, se deja como limitación
+        // conocida en vez de fallar cada corrida esperando algo que nunca va a aparecer.
+        test.skip(region.name === 'ROW', 'ROW usa el checkout internacional de GlobalE (sin Adyen) — no automatizado todavía');
+
+        // El flujo completo (popups, widget de direcciones, Adyen) en staging supera los 90s por
+        // defecto. test.slow() (x3 = 270s) no alcanzaba en días de stage lento — confirmado:
+        // 5 de 6 regiones dieron timeout justo ahí. Se fija un valor explícito más amplio.
+        test.setTimeout(420_000);
         await page.goto(baseUrl);
         const home = new HomePage(page);
         await home.acceptCookiesIfPresent();
@@ -86,7 +97,8 @@ for (const brand of regressionBrands) {
         await checkout.fillAdyenCard(adyenTestCard);
         await checkout.placeOrder();
 
-        await expect(page).toHaveURL(/order-confirmation|checkout\/receipt|thank-you/i, { timeout: 30000 });
+        // En Hobbs/Phase Eight la confirmación es /secure/checkout/confirmation/?ID=...
+        await expect(page).toHaveURL(/order-confirmation|checkout\/confirmation|checkout\/receipt|thank-you/i, { timeout: 30000 });
       });
 
     });

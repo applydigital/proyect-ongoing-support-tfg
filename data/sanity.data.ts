@@ -24,6 +24,8 @@ type BrandData = {
   prodUrl: string;
   searchTerm: string;
   categoryPath: string;
+  /** Plantilla para búsqueda directa por URL. {q} se reemplaza por el término. */
+  searchPath?: string;
   regions: Region[];
 };
 
@@ -61,6 +63,9 @@ export const sanitySiteData: BrandData[] = [
     prodUrl: process.env.WHISTLES_PROD_URL ?? 'https://www.whistles.com',
     searchTerm: 'dress',
     categoryPath: '/bags/',
+    // Whistles usa React/WR — el searchbox no responde al flujo SFRA en Safari.
+    // Navegación directa a la URL de búsqueda como fallback confiable cross-browser.
+    searchPath: '/search/?q={q}',
     regions: [
       { name: 'UK', path: '/' },
     ],

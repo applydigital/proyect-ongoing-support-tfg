@@ -1,0 +1,12 @@
+Title,Priority,Template,Tags,Pre-Condition,Steps,Expected
+"TFGTRS-4447 - No Constructor 400 ""item_id: Field required"" in SFCC logs after browsing - Phase Eight UK",High,,TFGTRS-4447,"Dev environment is accessible (basic auth credentials available). Access to the SFCC Business Manager log files (or Log Center) for Sites-P8-UK-Site.","1. Note the current time.
+2. On dev.phase-eight.com browse the flows that use Constructor: search with suggestions, a PLP, a PDP with recommendations, add to bag.
+3. In Business Manager open the log files and look for entries after the noted time with service constructor.http.api.
+4. Search the entries for ""item_id"".","No error or fatal entry with status 400 and message {""message"":""item_id: Field required""} appears for constructor.http.api."
+"TFGTRS-4447 - No SFCC Critical Alert (Fatal Log) for constructor.http.api after deploy",Medium,,TFGTRS-4447,"The fix is deployed to the environment being checked (staging, then production). Access to the Grafana dashboard sfcc-overview-tfg.","1. After the deploy, monitor the Grafana dashboard for 24 hours.
+2. Check whether the ""SFCC Critical Alert - Fatal Log - TFG"" alert fires for Sites-P8-UK-Site.","The alert does not fire for the Constructor integration and there are no new fatal logs from constructor.http.api."
+"TFGTRS-4447 - Constructor-powered features still work - Phase Eight",Medium,,TFGTRS-4447,"Dev environment is accessible (basic auth credentials available).","1. Search for a term and check the suggestions and the results page.
+2. Open a PLP and check that products load.
+3. Open a PDP and check the recommendations.","Search, listings and recommendations load correctly with products displayed."
+"TFGTRS-4447 - The same error does not appear on other brands",Medium,,TFGTRS-4447,"Dev environment is accessible (basic auth credentials available). Access to the SFCC log files.","1. Repeat the browsing flows on dev.hobbs.com and dev.whistles.com.
+2. Check their site logs for constructor.http.api entries with status 400.","No Constructor 400 ""item_id"" error is logged for any brand."

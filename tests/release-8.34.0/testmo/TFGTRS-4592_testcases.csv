@@ -1,0 +1,15 @@
+Title,Priority,Template,Tags,Pre-Condition,Steps,Expected
+"TFGTRS-4592 - No payment method selected: order is rejected with the existing validation message - HB-UK, P8-UK, WH-UK",High,,TFGTRS-4592,"Dev environment is accessible (basic auth credentials available). Cookies accepted. A product in the bag. The fix stops the Adyen form processor from throwing and spamming the error log.","1. Go through the checkout up to the payment step.
+2. Do not select any payment method.
+3. Click Place order.","The order is not placed. The existing validation message is shown (Hobbs: ""Please Select A Payment method"") and the user stays on the checkout without errors."
+"TFGTRS-4592 - Business Manager logs after placing an order with no payment method",High,,TFGTRS-4592,"Business Manager access to the Development logs on dev. Run immediately after the previous test case so the log entries are easy to identify.","1. Open custom-Adyen_error-*.log.
+2. Open custom-Adyen_warn-*.log.","The error log has no new entries for the submission. The warn log has one new entry containing ""no payment method selected""."
+"TFGTRS-4592 - Adyen card component with valid state data places the order - HB-UK, P8-UK, WH-UK",High,,TFGTRS-4592,"Dev environment is accessible (basic auth credentials available). Adyen test card only, never in production.","1. Go through the checkout up to the payment step.
+2. Select Credit / Debit Card and enter the Adyen test card.
+3. Click Place order.","The payment is authorised and the order confirmation page is shown, as before the fix."
+"TFGTRS-4592 - Info log still has the State Data entry after a card payment",Medium,,TFGTRS-4592,"Business Manager access to the Development logs on dev. Run right after a card order.","1. Open custom-Adyen_info-*.log.","The entry ""State Data - Append Payment Details"" is still written."
+"TFGTRS-4592 - Card method selected with empty or incomplete card data",Medium,,TFGTRS-4592,"Dev environment is accessible (basic auth credentials available).","1. Go through the checkout up to the payment step.
+2. Select Credit / Debit Card but leave the card fields empty (or incomplete).
+3. Click Place order.
+4. Check the Adyen error log.","The order is rejected with a validation message and the error log is not flooded with ""Cannot read property paymentMethod from null"" or ""Failed to parse payment form stateData""."
+"TFGTRS-4592 - Non-Adyen payment method is not affected (PayPal) - manual",Medium,,TFGTRS-4592,"Dev environment is accessible (basic auth credentials available). PayPal sandbox account. Not covered by automation.","1. Go through the checkout and pay with PayPal (sandbox).","The checkout works as before. The Adyen form processor is skipped and there are no new entries in the Adyen logs."

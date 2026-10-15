@@ -1,0 +1,21 @@
+Title,Priority,Template,Tags,Pre-Condition,Steps,Expected
+"TFGTRS-4602 - Mobile PDP gallery loops forward on swipe - Hobbs and Phase Eight",High,,TFGTRS-4602,"Dev environment is accessible (basic auth credentials available). Mobile device or Chrome DevTools device emulation (e.g. Pixel 7). Product with several images.","1. Open a PDP on a mobile viewport (Hobbs and Phase Eight).
+2. Accept the cookie banner.
+3. Swipe left through all the images until the last one.
+4. On the last image, swipe left once more.","The gallery returns to the first image. The behaviour is the same as on desktop, where the gallery loops."
+"TFGTRS-4602 - Mobile PDP gallery loops backward on swipe - Hobbs and Phase Eight",High,,TFGTRS-4602,"Dev environment is accessible (basic auth credentials available). Mobile device or Chrome DevTools device emulation (e.g. Pixel 7). Product with several images.","1. Open a PDP on a mobile viewport (Hobbs and Phase Eight).
+2. Accept the cookie banner.
+3. On the first image, swipe right.","The gallery goes to the last image."
+"TFGTRS-4602 - Mobile PDP gallery loops forward on swipe - Whistles",High,,TFGTRS-4602,"Dev environment is accessible (basic auth credentials available). Mobile device or Chrome DevTools device emulation. Product with several images. Whistles uses a different gallery component (pdp-gallery).","1. Open a Whistles PDP on a mobile viewport.
+2. Accept the cookie banner.
+3. Swipe left through all the images until the last one.
+4. On the last image, swipe left once more.","The gallery returns to the first image instead of staying on the last one."
+"TFGTRS-4602 - Mobile PDP gallery loops backward on swipe - Whistles",Medium,,TFGTRS-4602,"Dev environment is accessible (basic auth credentials available). Mobile device or Chrome DevTools device emulation. Known observation on dev: swiping right on the first image jumped to a middle image instead of the last one.","1. Open a Whistles PDP on a mobile viewport.
+2. Accept the cookie banner.
+3. On the first image, swipe right.
+4. Optionally check the scroll position in the console: document.querySelector('.pdp-gallery__viewport').scrollLeft.","The gallery goes to the last image (scrollLeft close to the maximum), not to a middle image."
+"TFGTRS-4602 - Gallery arrows (chevrons) still work and loop",Medium,,TFGTRS-4602,"Dev environment is accessible (basic auth credentials available). Mobile viewport and desktop viewport.","1. Open a PDP of each brand.
+2. Click the next arrow until the last image, then once more.
+3. On the first image, click the previous arrow.","The arrows keep working and loop in both directions, as before the change."
+"TFGTRS-4602 - Desktop gallery and single-image products are not affected",Low,,TFGTRS-4602,"Dev environment is accessible (basic auth credentials available).","1. On desktop, open a PDP of each brand and browse the gallery with the arrows and the thumbnails.
+2. Open a product with a single image on mobile and try to swipe.","The desktop gallery behaves as before. A single image does not loop, flicker or throw console errors."
