@@ -56,12 +56,24 @@ jobs:
         if: always()
         run: npm run report:slack
 
+      - name: Generate Allure report
+        if: always()
+        run: npx allure generate reports/allure-results --clean -o reports/allure-report
+
+      - name: Upload Allure report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-${{ github.event.inputs.suite }}-${{ github.run_number }}
+          path: reports/allure-report/
+          retention-days: 14
+
       - name: Upload HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-${{ github.event.inputs.suite }}-${{ github.run_number }}
-          path: reports/
+          path: reports/html/
           retention-days: 14
 
       - name: Print Slack summary
